@@ -47,17 +47,63 @@ class RelayStateInline(admin.StackedInline):
         return extra
 
 
-class AttributeInline(admin.StackedInline):
-    model = models.Attribute
-    filter_horizontal = ["query_parameters"]
+# class AttributeInline(admin.StackedInline):
+#     model = models.Attribute
+#     filter_horizontal = ["query_parameters"]
+#
+#     def get_extra(self, request, obj=None, **kwargs):
+#         # if this is brand new then return an empty RelayState form, otherwise just return the existing form(s)
+#         extra = 1
+#         if obj:
+#             return 0
+#         return extra
+#
+#
+# @admin.register(models.Destination)
+# class DestinationAdmin(admin.ModelAdmin):
+#     list_display = ("entity", "name", "description")
+#     search_fields = ("entity", "name",)
+#     list_select_related = True
+#     inlines = [
+#         RelayStateInline,
+#         AttributeInline,
+#     ]
+
+
+# AssertionAttribute, TokenString, TokenQuery
+
+class AssertionAttributeInline(admin.StackedInline):
+    model = models.AssertionAttribute
 
     def get_extra(self, request, obj=None, **kwargs):
-        # if this is brand new then return an empty RelayState form, otherwise just return the existing form(s)
+        # if this is brand new then return an empty form, otherwise just return the existing form(s)
         extra = 1
         if obj:
             return 0
         return extra
 
+
+class TokenStringInline(admin.StackedInline):
+    model = models.TokenString
+
+    def get_extra(self, request, obj=None, **kwargs):
+        # if this is brand new then return an empty form, otherwise just return the existing form(s)
+        extra = 1
+        if obj:
+            return 0
+        return extra
+
+
+class TokenQueryInline(admin.StackedInline):
+    model = models.TokenQuery
+    filter_horizontal = ["query_parameters"]
+
+    def get_extra(self, request, obj=None, **kwargs):
+        # if this is brand new then return an empty form, otherwise just return the existing form(s)
+        extra = 1
+        if obj:
+            return 0
+        return extra
 
 @admin.register(models.Destination)
 class DestinationAdmin(admin.ModelAdmin):
@@ -66,10 +112,10 @@ class DestinationAdmin(admin.ModelAdmin):
     list_select_related = True
     inlines = [
         RelayStateInline,
-        AttributeInline,
+        TokenStringInline,
+        AssertionAttributeInline,
+        TokenQueryInline,
     ]
-
-
 
 '''
 @admin.register(models.Destination)
