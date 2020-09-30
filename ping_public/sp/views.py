@@ -62,7 +62,7 @@ class ServiceProvider(generic.ListView):
         display += ('<li>' + 'Issuer: ' + str(validated_saml.saml.issuer) + '</li>')
         display += ('<li>' + 'Audience: ' + str(validated_saml.saml.audience_restriction) + '</li>')
         # style="text-indent: 40px"
-        display += ('<li>' + 'SAML Attribute Info: </li><ul>')
+        display += ('<li>' + 'SAML Attributes Received: </li><ul>')
         for k, v in validated_saml.saml.attributes.items():
             display += ('<li>' + 'Attribute Name: ' + str(k) + '</li><li style="text-index: 40px">Attribute Value: ' + str(v) + '</li><br>')
         display += ('</ul><li>' + 'Generated Token: </li><br>')
