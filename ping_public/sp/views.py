@@ -8,6 +8,7 @@ import json
 from lxml import etree
 
 from .utils.saml_processor import SamlProcessor
+from .utils.saml_decrypter import SamlDecrypter
 
 @method_decorator(csrf_exempt, name='dispatch')
 class ServiceProvider(generic.ListView):

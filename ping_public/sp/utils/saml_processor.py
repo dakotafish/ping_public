@@ -1,9 +1,13 @@
 from lxml import etree
-from signxml import XMLSigner, XMLVerifier
+from signxml import XMLVerifier
 from base64 import b64decode
 import datetime
+#import xmlsec
+#import Crypto.Cipher.AES as AES
+# Need to remove Crypto.Cipher.AES dependency
 
 from sp.models import Entity, Certificate
+from .saml_decrypter import SamlDecrypter
 
 
 
@@ -65,7 +69,6 @@ class SamlProcessor:
             # need to include list of attempted certs in the exception
             # but first need to parse cert info and store it in the database
             raise Exception(message)
-
 
     def validate_saml(self):
         # check audience restriction
