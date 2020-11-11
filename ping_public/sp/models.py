@@ -47,8 +47,8 @@ class Entity(models.Model):
                 message = 'No RelayState was received.\n Attempted to use default RelayState value of: ' + str(
                     relay_state)
             else:
-                message = 'The RelayState that was received did not match any of the configured RelayStates \
-                            for this Connection.\n\t Received RelayState: ' + str(relay_state)
+                message = '''The RelayState that was received did not match any of the configured RelayStates
+                            for this Connection.\n\t Received RelayState: ''' + str(relay_state)
             raise Exception(message)
         return destination[0]
 
@@ -177,7 +177,11 @@ class TokenQuery(models.Model):
 
         with connections[data_store].cursor() as cursor:
             result_set = cursor.execute(query, query_parameters)
-            result = cursor.fetchone()[0]
+            result = cursor.fetchone()
+            if result is not None:
+                result = result[0]
+            else:
+                result = "None"
             return {
                 'name': self.token_attribute_name,
                 'value': result,

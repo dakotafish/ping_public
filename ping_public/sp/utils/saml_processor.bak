@@ -2,7 +2,6 @@ from lxml import etree
 from signxml import XMLVerifier
 from base64 import b64decode
 import datetime
-from django.core.exceptions import ObjectDoesNotExist
 #import xmlsec
 #import Crypto.Cipher.AES as AES
 # Need to remove Crypto.Cipher.AES dependency
@@ -12,54 +11,39 @@ from .saml_decrypter import SamlDecrypter
 
 
 
+#test_cert_location = '/Users/dfischer/Documents/bf_certs/test.partner.benefitfocus.com.crt'
+#test_cert = open(test_cert_location, 'rb').read()
+#test_cert = test_cert.decode()
+
 
 class SamlProcessor:
+    #test_cert = open('/Users/dfischer/Documents/bf_certs/test.partner.benefitfocus.com.crt', 'rb').read().decode()
 
     def __init__(self, saml_response):
         self.saml_response = b64decode(saml_response)
-        self.entity_config = None
-        self.certificates = []
-        self.private_keys = []
+        self.xml_verifier_object = None
+        #self.signed_data = None
+        self.signed_xml = None
+        #self.signature_xml = None
+
+        self.entity = None
+        self.issuer_id = None
+        self.certificates = None
         self.active_cert = None
 
-        self.get_entity_config()
+        self.find_config()
         self.validate_signature()
-        if self.entity_config.is_encrypted:
-            #private_keys = PrivateKey.objects.filter( ...idk yet... )
-            test_private_keys = ['/Users/dfischer/Documents/bf_certs/private_keys/test_public_private/test.partner.benefitfocus.com.key.pem']
-            allowed_decryption_methods = ['aes128-cbc', 'aes256-cbc', 'tripledes-cbc']
-            #decrypted_saml = SamlDecrypter(self.saml_response, test_private_keys, allowed_decryption_methods)
-            decrypted_saml = SamlDecrypter(self.signed_xml, test_private_keys, allowed_decryption_methods)
-            self.saml_response = decrypted_saml.saml
-
-        #self.validate_signature()
-        if self.entity_config.is_encrypted:
-            self.saml = Saml(self.saml_response)
-        else:
-            self.saml = Saml(self.signed_xml)
+        self.saml = Saml(self.signed_xml)
         self.validate_saml()
 
+    def find_config(self):
+        root = etree.fromstring(self.saml_response)
+        issuer_id = root.find('{*}Issuer').text
+        self.entity = Entity.objects.get(entity_id__iexact=issuer_id)
+        self.issuer_id = self.entity.entity_id
+        self.certificates = Certificate.objects.filter(entity__id=self.entity.id)
 
-    def get_entity_config(self):
-        try:
-            issuer_id = etree.fromstring(self.saml_response).find('{*}Issuer').text
-            entity = Entity.objects.get(entity_id__iexact=issuer_id)
-        except ObjectDoesNotExist as e:
-            message = "No SSO configuration was found for Entity ID: {0}".format(issuer_id)
-            self.raise_processing_exception(message, e)
-        else:
-            self.entity_config = entity
-            self.certificates = Certificate.objects.filter(entity__id=self.entity_config.id)
-            if entity.is_encrypted:
-                #self.private_keys = PrivateKey.objects.filter( ...idk yet... )
-                test_private_key = '/Users/dfischer/Documents/bf_certs/private_keys/test_public_private/test.partner.benefitfocus.com.key.pem'
-                self.private_keys = [test_private_key]
 
-    def raise_processing_exception(self, message, exception):
-        return {
-            'message': message,
-            'exception': exception
-        }
 
     def validate_signature(self):
         '''
@@ -73,7 +57,6 @@ class SamlProcessor:
                                             ignore_ambiguous_key_info=True)
             #except signxml.exceptions.InvalidSignature as e:
             except Exception as e:
-                print('\nFailed to Verify Signature. Exception:\n')
                 print(e)
             else:
                 self.active_cert = cert
@@ -90,8 +73,8 @@ class SamlProcessor:
     def validate_saml(self):
         # check audience restriction
         audience = 'benefitfocus.com:sp'
-        if self.entity_config.virtual_server_id:
-            audience = self.entity_config.virtual_server_id
+        if self.entity.virtual_server_id:
+            audience = self.entity.virtual_server_id
         if audience != self.saml.audience_restriction:
             message = "AudienceRestriction in the SAML does not match the configuration. \t"
             message += str(self.saml.audience_restriction) + ' != ' + str(audience)
@@ -112,6 +95,7 @@ class SamlProcessor:
         if 'success' not in str(self.saml.status).lower():
             message = 'SAML status is NOT success. \n\t Status: ' + str(self.saml.status)
             raise Exception(message)
+
 
 
 class Saml:
