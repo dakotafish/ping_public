@@ -1,4 +1,5 @@
 import xmlsec
+from lxml import etree
 
 '''
 Reference: https://github.com/mehcode/python-xmlsec/blob/master/tests/test_enc.py
@@ -14,6 +15,8 @@ class SamlDecrypter:
         decryption_keys -> a list of raw private key data to attempt to decrypt the assertion with
         allowed_decryption_methods -> a list of acceptable encryption methods (Allows us to restrict encryption methods)
         """
+        #self.saml = etree.fromstring(saml)
+        # the saml argument will already be an xml object
         self.saml = saml
         self.allowed_decryption_methods = allowed_decryption_methods
         self.decryption_keys = decryption_keys
@@ -87,4 +90,6 @@ class SamlDecrypter:
         decrypted_assertion = encryption_context.decrypt(encrypted_data)
         self.decrypted_assertion = decrypted_assertion
         encryption_context.reset()
-        return decrypted_assertion
+        encrypted_assertion = self.saml.find('{*}EncryptedAssertion')
+        self.saml.remove(encrypted_assertion)
+        self.saml.append(decrypted_assertion)
