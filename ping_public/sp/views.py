@@ -8,6 +8,7 @@ import json
 from lxml import etree
 
 from .utils.saml_processor import SamlProcessor
+from .utils.saml_decrypter import SamlDecrypter
 
 @method_decorator(csrf_exempt, name='dispatch')
 class ServiceProvider(generic.ListView):
@@ -72,7 +73,7 @@ class ServiceProvider(generic.ListView):
         return HttpResponse(display)
 
     def build_token(self, validated_saml, relay_state):
-        entity = validated_saml.entity
+        entity = validated_saml.entity_config
         received_attributes = validated_saml.saml.attributes
         destination = entity.get_destination(relay_state)
         '''
