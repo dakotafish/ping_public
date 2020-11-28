@@ -21,11 +21,11 @@ class ServiceProvider(generic.ListView):
         post_data = request.POST.copy()
         saml_response = post_data['SAMLResponse']
         if 'RelayState' in post_data:
-            relay_state = post_data['RelayState']
+            relay_state = post_data['RelayState'].strip()
         else:
             relay_state = None
 
-        validated_saml = SamlProcessor(saml_response)
+        validated_saml = SamlProcessor(saml_response, relay_state)
 
         token = self.build_token(validated_saml, relay_state)
 

@@ -10,10 +10,101 @@ from django.core.exceptions import ObjectDoesNotExist
 from sp.models import Entity, Certificate
 from .saml_decrypter import SamlDecrypter
 
-
-
-
 class SamlProcessor:
+
+    def __init__(self, saml_response, relay_state):
+        self.raw_saml_response = b64decode(saml_response)
+        self.received_relay_state = relay_state
+        self.entity = None
+
+        #self.entity = self.build_entity()
+        self.build_entity()
+        self.process_signature_and_encryption()
+        self.saml = Saml(self.verified_saml)
+        self.validate_saml()
+        self.process_saml_attributes()
+    '''
+    def build_entity(self):
+        # Find the correct entity and destination from the issuer_id & relay_state
+        # issuer_id = self.get_issuer_id()
+        issuer_id = etree.fromstring(self.raw_saml_response).find('{*}Issuer').text
+        entity = Entity.objects.get(entity_id__iexact=issuer_id)
+        #destination = entity.get_destination(self.relay_state)
+        destination, model_relay_state = entity.get_destination(self.relay_state)
+        if destination:
+            #self.destination = destination
+            entity.destination = destination
+        return entity
+    '''''
+    def build_entity(self):
+        issuer_id = etree.fromstring(self.raw_saml_response).find('{*}Issuer').text.strip()
+        entity = Entity.objects.get(entity_id__iexact=issuer_id)
+        self.entity = entity.build_entity(self.received_relay_state)
+
+    def process_signature_and_encryption(self):
+        # First, we'll validate the signature
+        verified_saml = self.entity.check_signature(self.raw_saml_response)
+        if verified_saml:
+            self.verified_saml = verified_saml
+
+        # Next, we'll decrypt the assertion if necessary
+        if self.entity.is_encrypted:
+            decrypted_saml = self.entity.decrypt_saml(self.verified_saml)
+            if decrypted_saml:
+                self.verified_saml = decrypted_saml
+
+    def raise_processing_exception(self, message, exception):
+        return {
+            'message': message,
+            'exception': exception
+        }
+
+    def get_issuer_id(self):
+        if self.saml_response:
+            return etree.fromstring(self.raw_saml_response).find('{*}Issuer').text
+        else:
+            self.raise_processing_exception("There was no SAMLResponse on the Request.", "None")
+
+    def validate_saml(self):
+        # check audience restriction
+        audience = 'benefitfocus.com:sp'
+        if self.entity.virtual_server_id:
+            audience = self.entity.virtual_server_id
+        if audience != self.saml.audience_restriction:
+            message = "AudienceRestriction in the SAML does not match the configuration. \t"
+            message += str(self.saml.audience_restriction) + ' != ' + str(audience)
+            raise Exception(message)
+        # check notBefore & notAfter
+        now = datetime.datetime.utcnow()
+        not_before = datetime.datetime.strptime(self.saml.not_before, "%Y-%m-%dT%H:%M:%S.%fZ")
+        not_on_or_after = datetime.datetime.strptime(self.saml.not_on_or_after, "%Y-%m-%dT%H:%M:%S.%fZ")
+        if now < (not_before - datetime.timedelta(minutes=5)):
+            message = 'SAML is violating notBefore condition.\n\t'
+            message += 'Now = ' + str(now) + '\n\tNotBefore = ' + str(not_before - datetime.timedelta(minutes=5))
+            raise Exception(message)
+        if now > not_on_or_after:
+            message = 'SAML is violating notOnOrAfter condition.\n\t'
+            message += 'Now = ' + str(now) + '\n\tnotOnOrAfter = ' + str(not_on_or_after)
+            raise Exception(message)
+        # check saml status (this might not be necessary)
+        if 'success' not in str(self.saml.status).lower():
+            message = 'SAML status is NOT success. \n\t Status: ' + str(self.saml.status)
+            raise Exception(message)
+
+    def process_saml_attributes(self):
+        # This method will need to Process the Attributes received against the given entity.destination
+        saml_attributes = self.saml.attributes
+        processed_attributes = self.entity.destination.process_attributes(saml_attributes,
+                                                                          self.entity.relay_state.data_store)
+
+
+
+
+
+
+
+
+class OLD_SamlProcessor:
 
     def __init__(self, saml_response):
         self.saml_response = b64decode(saml_response)

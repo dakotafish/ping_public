@@ -72,50 +72,51 @@ class RelayStateInline(admin.StackedInline):
 
 # AssertionAttribute, TokenString, TokenQuery
 
-class AssertionAttributeInline(admin.StackedInline):
-    model = models.AssertionAttribute
-
-    def get_extra(self, request, obj=None, **kwargs):
-        # if this is brand new then return an empty form, otherwise just return the existing form(s)
-        extra = 1
-        if obj:
-            return 0
-        return extra
-
-
-class TokenStringInline(admin.StackedInline):
-    model = models.TokenString
-
-    def get_extra(self, request, obj=None, **kwargs):
-        # if this is brand new then return an empty form, otherwise just return the existing form(s)
-        extra = 1
-        if obj:
-            return 0
-        return extra
+# # TODO - If I want the django admin console to make sense I'll need to fix these again
+# class AssertionAttributeInline(admin.StackedInline):
+#     model = models.AssertionAttribute
+#
+#     def get_extra(self, request, obj=None, **kwargs):
+#         # if this is brand new then return an empty form, otherwise just return the existing form(s)
+#         extra = 1
+#         if obj:
+#             return 0
+#         return extra
 
 
-class TokenQueryInline(admin.StackedInline):
-    model = models.TokenQuery
-    filter_horizontal = ["query_parameters"]
+# class TokenStringInline(admin.StackedInline):
+#     model = models.TokenString
+#
+#     def get_extra(self, request, obj=None, **kwargs):
+#         # if this is brand new then return an empty form, otherwise just return the existing form(s)
+#         extra = 1
+#         if obj:
+#             return 0
+#         return extra
 
-    def get_extra(self, request, obj=None, **kwargs):
-        # if this is brand new then return an empty form, otherwise just return the existing form(s)
-        extra = 1
-        if obj:
-            return 0
-        return extra
 
-@admin.register(models.Destination)
-class DestinationAdmin(admin.ModelAdmin):
-    list_display = ("entity", "name", "description")
-    search_fields = ("entity", "name",)
-    list_select_related = True
-    inlines = [
-        RelayStateInline,
-        TokenStringInline,
-        AssertionAttributeInline,
-        TokenQueryInline,
-    ]
+# class TokenQueryInline(admin.StackedInline):
+#     model = models.TokenQuery
+#     filter_horizontal = ["query_parameters"]
+#
+#     def get_extra(self, request, obj=None, **kwargs):
+#         # if this is brand new then return an empty form, otherwise just return the existing form(s)
+#         extra = 1
+#         if obj:
+#             return 0
+#         return extra
+
+# @admin.register(models.Destination)
+# class DestinationAdmin(admin.ModelAdmin):
+#     list_display = ("entity", "name", "description")
+#     search_fields = ("entity", "name",)
+#     list_select_related = True
+#     inlines = [
+#         RelayStateInline,
+#         TokenStringInline,
+#         AssertionAttributeInline,
+#         TokenQueryInline,
+#     ]
 
 '''
 @admin.register(models.Destination)
