@@ -3,10 +3,10 @@ from django.contrib import admin
 from . import models
 
 #admin.site.register(models.Entity)
-#admin.site.register(models.Certificate)
-#admin.site.register(models.Destination)
-#admin.site.register(models.RelayState)
-#admin.site.register(models.Attribute)
+admin.site.register(models.Certificate)
+admin.site.register(models.Destination)
+admin.site.register(models.RelayState)
+admin.site.register(models.Attribute)
 
 
 
@@ -36,15 +36,15 @@ class EntityAdmin(admin.ModelAdmin):
     ]
 
 
-class RelayStateInline(admin.StackedInline):
-    model = models.RelayState
-
-    def get_extra(self, request, obj=None, **kwargs):
-        # if this is brand new then return an empty RelayState form, otherwise just return the existing form(s)
-        extra = 1
-        if obj:
-            return 0
-        return extra
+# class RelayStateInline(admin.StackedInline):
+#     model = models.RelayState
+#
+#     def get_extra(self, request, obj=None, **kwargs):
+#         # if this is brand new then return an empty RelayState form, otherwise just return the existing form(s)
+#         extra = 1
+#         if obj:
+#             return 0
+#         return extra
 
 
 # class AttributeInline(admin.StackedInline):

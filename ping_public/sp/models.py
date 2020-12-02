@@ -14,7 +14,7 @@ class Entity(models.Model):
         (VALIDATE_ASSERTION, 'Validate Signature in SAML Assertion'),
     ]
 
-    entity_id = models.TextField(max_length=100)
+    entity_id = models.CharField(max_length=100)
     name = models.CharField(max_length=100)
     description = models.TextField()
     virtual_server_id = models.CharField(max_length=100, blank=True, null=True)
@@ -29,9 +29,7 @@ class Entity(models.Model):
     #  However, this could be tricky when initially creating the configuration.
     #  Maybe when adding a destination the UI should ask the user "make default?" each time.
     #  And if it's the only destination then you don't have a choice but to make it the default.
-    #default_relay_state = models.CharField(max_length=200, blank=True, null=True)
-    default_relay_state = models.ForeignKey('RelayState', on_delete=models.RESTRICT)
-    #default_destination = models.ForeignKey(Destination, on_delete=models.RESTRICT)
+    default_relay_state = models.ForeignKey('RelayState', on_delete=models.RESTRICT, blank=True, null=True)
 
     def build_entity(self, relay_state):
         # If the relaystate doesn't match anything that we have configured or if the client didnt send
@@ -47,26 +45,7 @@ class Entity(models.Model):
                     self.relay_state = matching_relay_state
                     self.destination = destination
                     return self
-        # if none of the relay_states match then we just use the defaults
         return self
-        '''
-        if relay_state is None:
-            self.relay_state = self.default_relay_state
-            self.destination = self.default_relay_state.destination
-            return self
-        else:
-            all_destinations = Destination.objects.filter(entity__id=self.id)
-            for destination in all_destinations:
-                matching_relay_state = destination.find_matching_relay_state(relay_state)
-                if matching_relay_state:
-                    self.relay_state = matching_relay_state
-                    self.destination = destination
-                    return self
-        # if we made it this far then none of the relay_states matched so we'll just use the default
-        self.relay_state = self.default_relay_state
-        self.destination = self.default_relay_state.destination
-        return self
-        '''
 
     def check_signature(self, raw_saml_response):
         certificates = Certificate.objects.filter(entity__id=self.id)
@@ -93,18 +72,6 @@ class Entity(models.Model):
         print(message)
         for i in keys: print(i)
         raise Exception(message)
-
-    def get_destination(self, relay_state):
-        all_destinations = Destination.objects.filter(entity__id=self.id)
-        if len(all_destinations) == 1 or relay_state is None:
-            return self.default_destination
-            # or alternatively, return all_destinations[0]
-        else:
-            # TODO - This lookup isn't going to work at all. Probably need a regex here.
-            # TODO - If this lookup returns nothing then we should just use the default destination.
-            destination = Destination.objects.filter(entity__id=self.id,
-                                                     relaystate__url_pattern__istartswith=relay_state)[0]
-            return destination
 
 
 class Certificate(models.Model):
@@ -136,7 +103,7 @@ class PrivateKey(models.Model):
     key = models.TextField()
     key_info = models.TextField(blank=True, null=True)
     expiration_date = models.DateTimeField(blank=True, null=True)
-    # TODO - allowed_decryption_methods needs to be a django field and configurable on this model
+    # TODO - allowed_decryption_methods needs to be a field and configurable on this model
     allowed_decryption_methods = ['aes128-cbc', 'aes256-cbc', 'tripledes-cbc']
 
     def decrypt_saml(self, verified_saml):
@@ -238,26 +205,21 @@ class Destination(models.Model):
     # TODO - The token_password will need to be encrypted eventually
     token_password = models.CharField(max_length=100)
 
-    def find_matching_relay_state(self, relay_state):
+    def find_matching_relay_state(self, received_relay_state):
         all_relay_states = RelayState.objects.filter(destination__id=self.id)
         for relay_state in all_relay_states:
-            if relay_state.matches(relay_state):
+            if relay_state.matches(received_relay_state):
                 return relay_state
         # if we made it this far then none of the relay_states for this destination matched so we return None.
         return None
 
     def process_attributes(self, saml_attributes, data_store):
-        # string_attributes = Attribute.objects.filter(destination__id=self.id, attribute_type='STRING')
-        # assertion_attributes = Attribute.objects.filter(destination__id=self.id, attribute_type='STRING')
-        # query_attributes = Attribute.objects.filter(destination__id=self.id, attribute_type='STRING')
-        # I don't think there's any need to do these in order anymore, so just loop through all of the attributes.
         all_attributes = Attribute.objects.filter(destination__id=self.id)
         token = dict()
         for attribute in all_attributes:
             if attribute.include_in_token:
                 token_attribute = attribute.process_attribute(saml_attributes, data_store)
-
-
+                token[token_attribute['name']] = token_attribute['value']
 
 
 class RelayState(models.Model):
@@ -265,7 +227,7 @@ class RelayState(models.Model):
     SIMPLE = 'SIMPLE'
     REGEX = 'REGEX'
     URL_PATTERN_CHOICES = [
-        (SIMPLE, 'Simple URL Match. (The asterisk * is the only special character.'),
+        (SIMPLE, 'Simple URL Match with wildcard(*). (Example: https://*.hostname.com/uri* )'),
         (REGEX, 'Python Regular Expression Match.'),
     ]
 
@@ -344,7 +306,7 @@ class Attribute(models.Model):
     token_attribute_value = models.CharField(max_length=100, blank=True, null=True,
                                              help_text=token_attribute_value_help_text)
     query = models.TextField(blank=True, null=True, help_text=query_help_text)
-    query_parameters = models.ManyToManyField("Attribute", blank=True, null=True)
+    query_parameters = models.ManyToManyField("Attribute", blank=True)
     # TODO - I'm not sure if this is the best strategy. I can use ManyToMany like this and the user will choose from \
     #  the existing attributes set up on this destination. OR This could be a delimted field and the user just gives \
     #  a list of the attribute names.
