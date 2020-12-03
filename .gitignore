@@ -110,3 +110,4 @@ venv.bak/
 settings.py
 .DS_Store
 temp_db.sqlite3
+db.sqlite3.bak
