@@ -1,0 +1,11 @@
+<form action="{% url 'CreateNew' 'sp' form.MODEL form.PARENT_INSTANCE %}" method="post">
+    {% csrf_token %}
+    <tr>
+        {% csrf_token %}
+        <td> {{ form.data_store }} </td>
+        <td> {{ form.pattern_type }} </td>
+        <td> {{ form.url_pattern }} </td>
+        <td> {{ form.destination_endpoint }} </td>
+        <td> <input type="submit" onclick="submitTableForm(event)" value="Save" formTarget="{% url 'CreateNew' 'sp' form.MODEL form.PARENT_INSTANCE %}"> </td>
+    </tr>
+</form>

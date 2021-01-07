@@ -1,0 +1,29 @@
+{% if form %}
+<div class="destinationConfigurationHeader" >
+    <h4>Destination Configuration</h4>
+</div>
+<div class="destinationConfiguration" >
+
+    <h5> Destination Name: {{ form.MODEL_INSTANCE.name }}</h5>
+    <form action="{% url 'CreateNew' 'sp' form.MODEL form.PARENT_INSTANCE %}" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" onclick="submitForm(event)" value="Save Destination" >
+    </form>
+    <input type="submit" onclick="getNewForm(this)" value="Create New Destination" target="{% url 'CreateNew' 'sp' form.MODEL form.PARENT_INSTANCE %}">
+
+    <div class="relaystateConfigurationHeader" >
+        <h4>RelayState Configuration</h4>
+    </div>
+    <div class="relaystateConfiguration" >
+    <p> There are no RelayStates configured for this Destination yet.</p>
+    </div>
+
+    <div class="attributeConfigurationHeader">
+        <h4>Attribute Configuration</h4>
+    </div>
+    <div class="attributeConfiguration" >
+    <p> There are no Attributes configured for this Destination yet.</p>
+    </div>
+</div>
+{% endif %}

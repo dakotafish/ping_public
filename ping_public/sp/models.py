@@ -30,6 +30,8 @@ class Entity(models.Model):
     #  Maybe when adding a destination the UI should ask the user "make default?" each time.
     #  And if it's the only destination then you don't have a choice but to make it the default.
     default_relay_state = models.ForeignKey('RelayState', on_delete=models.RESTRICT, blank=True, null=True)
+    # TODO - Entity and PrivateKey should have a Many2Many relationship
+    private_keys = models.ManyToManyField("PrivateKey", blank=True)
 
     def build_entity(self, relay_state):
         # If the relaystate doesn't match anything that we have configured or if the client didnt send
@@ -61,6 +63,7 @@ class Entity(models.Model):
         raise Exception(message)
 
     def decrypt_saml(self, verified_saml):
+        # TODO - PrivateKey and Entity should be Many2Many so this lookup will need to be fixed.
         keys = PrivateKey.objects.filter(entity__id=self.id)
         for key in keys:
             decrypted_saml = key.decrypt_saml(verified_saml)
@@ -78,9 +81,18 @@ class Certificate(models.Model):
     '''Second Level Certificate Class. Responsible for verifying signatures.'''
     entity = models.ForeignKey(Entity, on_delete=models.CASCADE)
     certificate = models.TextField()
-    certificate_info = models.TextField(blank=True, null=True)
-    expiration_date = models.DateTimeField(blank=True, null=True)
+    #certificate_info = models.TextField(blank=True, null=True)
+    #expiration_date = models.DateTimeField(blank=True, null=True)
     # TODO - Should probably store CN, Issue Date, Expiration, ect.
+    subject = models.CharField(max_length=100, blank=True, null=True)
+    issuer = models.CharField(max_length=100, blank=True, null=True)
+    serial_number = models.CharField(max_length=100, blank=True, null=True)
+    subject_name_hash = models.CharField(max_length=100, blank=True, null=True)
+    #not_before = models.CharField(max_length=100, blank=True, null=True)
+    #not_after = models.CharField(max_length=100, blank=True, null=True)
+    issue_date = models.DateTimeField(blank=True, null=True)
+    expiration_date = models.DateTimeField(blank=True, null=True)
+    common_name = models.CharField(max_length=100, blank=True, null=True)
 
     def validate_signature(self, raw_saml_response):
         cert = self.certificate
@@ -98,7 +110,7 @@ class Certificate(models.Model):
 
 class PrivateKey(models.Model):
     '''Second Level PrivateKey Class. Responsible for decrypting assertions and signing authN requests.'''
-    entity = models.ForeignKey(Entity, on_delete=models.CASCADE)
+    #entity = models.ForeignKey(Entity, on_delete=models.CASCADE)
     # TODO - The key will need to be encrypted eventually
     key = models.TextField()
     key_info = models.TextField(blank=True, null=True)
@@ -183,9 +195,7 @@ class PrivateKey(models.Model):
         verified_saml.append(decrypted_assertion)
         return verified_saml
 
-
-class Destination(models.Model):
-    '''Second Level Destination Class. Its children include RelayState and Attribute.'''
+class TokenConfiguration(models.Model):
     COOKIE = 'COOKIE'
     QUERY_STRING = 'QUERY_STRING'
     TOKEN_LOCATION_CHOICES = [
@@ -193,7 +203,6 @@ class Destination(models.Model):
         (QUERY_STRING, 'Send the token as a Query String'),
     ]
 
-    entity = models.ForeignKey(Entity, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     description = models.TextField()
     token_name = models.CharField(max_length=20)
@@ -204,6 +213,28 @@ class Destination(models.Model):
     )
     # TODO - The token_password will need to be encrypted eventually
     token_password = models.CharField(max_length=100)
+
+class Destination(models.Model):
+    '''Second Level Destination Class. Its children include RelayState and Attribute.'''
+    # COOKIE = 'COOKIE'
+    # QUERY_STRING = 'QUERY_STRING'
+    # TOKEN_LOCATION_CHOICES = [
+    #     (COOKIE, 'Send the token as a Cookie'),
+    #     (QUERY_STRING, 'Send the token as a Query String'),
+    # ]
+
+    token_configuration = models.ForeignKey(TokenConfiguration, on_delete=models.RESTRICT, blank=True, null=True)
+    entity = models.ForeignKey(Entity, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    # token_name = models.CharField(max_length=20)
+    # token_location = models.CharField(
+    #     max_length=50,
+    #     choices=TOKEN_LOCATION_CHOICES,
+    #     default=QUERY_STRING,
+    # )
+    # # TODO - The token_password will need to be encrypted eventually
+    # token_password = models.CharField(max_length=100)
 
     def find_matching_relay_state(self, received_relay_state):
         all_relay_states = RelayState.objects.filter(destination__id=self.id)
@@ -265,6 +296,11 @@ class RelayState(models.Model):
         pattern = pattern.replace('.', r'\.')
         pattern = pattern.replace('*', r'.*?')
         return pattern
+
+# class DataStore(models.Model):
+#     name = models.CharField(max_length=100)
+#     description = models.TextField()
+#     configuration = models.TextField()
 
 class Attribute(models.Model):
     '''

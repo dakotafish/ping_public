@@ -1,0 +1,95 @@
+div {
+    border-left-style: solid;
+    margin-block-end: 4%;
+    padding: 10px;
+    border-radius: 1%;
+}
+
+ul {
+    padding-inline-start: 0px;
+}
+
+label {
+    display: inline-block;
+    width: 12%;
+    text-align: left;
+}
+
+input[type=submit] {
+    width: auto;
+    height: auto;
+    margin: 1%;
+    background-color: white;
+    -webkit-border-radius: 5px;
+    padding: 6px;
+}
+
+.entityConfigurationHeader {
+    border-color: #00BCD4;
+    background-color: #00BCD429;
+    margin-block-end: 0%;
+    border-radius: 1% 1% 0% 0%;
+}
+
+.entityConfiguration {
+    border-color: #00BCD4;
+    border-radius: 0% 0% 1% 1%;
+    margin-block-end: 1%;
+}
+
+.certificateConfigurationHeader {
+    border-color: #FFEB3B;
+    background-color: #ffeb3b54;
+    border-radius: 1% 1% 0% 0%;
+    margin-block-end: 0%;
+}
+
+.certificateConfiguration {
+    border-color: #FFEB3B;
+    border-radius: 0% 0% 1% 1%;
+    margin-block-end: 1%;
+}
+
+.destinationConfigurationHeader {
+    border-color: #4CAF50;
+    background-color: #4CAF5057;
+    border-radius: 1% 1% 0% 0%;
+    margin-block-end: 0%;
+}
+
+.destinationConfiguration {
+    border-color: #4CAF50;
+    border-radius: 0% 0% 1% 1%;
+    margin-block-end: 1%;
+}
+
+.relaystateConfigurationHeader {
+    border-color: #FF9800;
+    background-color: #ffca8d;
+    border-radius: 1% 1% 0% 0%;
+    margin-block-end: 0%;
+}
+
+.relaystateConfiguration {
+    border-color: #FF9800;
+    border-radius: 0% 0% 1% 1%;
+    margin-block-end: 1%;
+}
+
+.attributeConfigurationHeader {
+    border-color: coral;
+    background-color: #ff7f508c;
+    border-radius: 1% 1% 0% 0%;
+    margin-block-end: 0%;
+}
+
+.attributeConfiguration {
+    border-color: coral;
+    border-radius: 0% 0% 1% 1%;
+    margin-block-end: 1%;
+
+}
+
+
+
+
