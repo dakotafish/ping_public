@@ -1,7 +1,9 @@
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
+from django.utils.decorators import method_decorator
 from django.views import generic
+from django.views.decorators.csrf import csrf_exempt
 
 from sp.models import Entity, Certificate, Destination, RelayState, Attribute
 from .forms import EntityForm, CertificateForm, DestinationForm, RelayStateForm, AttributeForm
@@ -136,14 +138,16 @@ class Update(generic.DetailView):
 
 
 class Delete(generic.DetailView):
-    SUCCESS = {'status': 200, 'message': 'Deleted Successfully.'}
-    FAIL = {'status': 500, 'message': 'Something went wrong, please try again. Errors: {0}'}
+    SUCCESS = {'STATUS': 200, 'MESSAGE': 'Deleted Successfully.'}
+    FAIL = {'STATUS': 500, 'MESSAGE': 'Something went wrong, please try again. Errors: {0}'}
 
     def delete(self, request, *args, **kwargs):
-        # TODO - Need to create a js function that uses this view.. right now the delete button just throws an exception
+        # to access the body of a delete request you just use request.body
         model = kwargs['model']
         model_instance_id = kwargs['model_id']
         status = self.process_delete(model=model, model_instance_id=model_instance_id)
+        #return HttpResponse(status['message'], status=status['status'])
+        return JsonResponse(status) #, safe=False)
 
     def process_delete(self, model, model_instance_id):
         model = model.upper()

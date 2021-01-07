@@ -43,6 +43,7 @@ function updateAttrDisplay() {
             attrForm['id_query_parameters'].parentElement.style.display = '';
         }
     }
+    displayCertificateForm();
 }
 
 
@@ -78,7 +79,7 @@ async function submitForm(event) {
     }
 }
 
-async function submitTableForm(event) {
+async function submitTableForm(event, method='POST') {
     console.log("-----submitting table row as form------");
     event.preventDefault();
     let button = event.currentTarget;
@@ -89,13 +90,16 @@ async function submitTableForm(event) {
     tableRowForm.replaceChildren(tableRow);
     let formData = new FormData(tableRowForm);
     let response = await fetch(target,
-        {method: 'POST',
-        body: formData}
+        {
+        method: method,
+        body: formData,
+        headers: {'X-CSRFToken': csrftoken}
+        }
     );
     if (response.ok) {
         //let responseText = await response.text();
         let responseBody = await response.json();
-        buttonCell.insertAdjacentHTML('afterend', `<span id="timedSpan" style="color: green"> ${responseBody.MESSAGE} </span`);
+        buttonCell.insertAdjacentHTML('afterend', `<span id="timedSpan" style="color: green"> ${responseBody.MESSAGE} </span>`);
         setTimeout(() => {
             document.getElementById("timedSpan").remove();
             //let timedSpan = document.getElementById("timedSpan").innerHTML = "";
@@ -105,6 +109,9 @@ async function submitTableForm(event) {
             // blank forms use a target url of create-new
             // once it's been created we change that target to the update url returned from the view
             button.formTarget = responseBody.UPDATE_URL;
+        } else if (target.includes("delete")) {
+            // delete the table row element
+            button.parentElement.parentElement.remove();
         }
     } else {
         let responseText = await response.text();
