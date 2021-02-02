@@ -32,9 +32,10 @@ class CertificateForm(forms.Form):
     #certificate_file =
     certificate_file = forms.FileField(required=False, allow_empty_file=True)
 
-    def save_certificate(self, certificate):
+    def save_certificate(self, certificate, parent_instance):
         cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, certificate)
-        parent_entity = Entity.objects.get(pk=self.cleaned_data['parent_instance'])
+        #parent_entity = Entity.objects.get(pk=self.cleaned_data['parent_instance'])
+        parent_entity = Entity.objects.get(pk=parent_instance)
         common_name = self.get_common_name(cert)
 
         cert_instance = Certificate(

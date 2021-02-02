@@ -1,0 +1,23 @@
+{% if entity_certs %}
+{% for certificate in entity_certs %}
+<tr>
+    <td> {% csrf_token %} </td>
+    <td> {{ certificate.common_name }} </td>
+    <td> {{ certificate.serial_number }} </td>
+    <td> {{ certificate.issue_date|date:'Y-m-d' }} </td>
+    <td> {{ certificate.expiration_date|date:'Y-m-d' }} </td>
+    <td> <input type="submit" onclick="submitTableForm(event)" value="Download" formTarget="{% url 'Update' 'sp' 'CERTIFICATE' certificate.id %}"> </td>
+    <td> <input type="submit" onclick="submitTableForm(event, method='DELETE')" value="Delete" formTarget="{% url 'Delete' 'sp' 'CERTIFICATE' certificate.id %}"> </td>
+</tr>
+{% endfor %}
+{% else %}
+<tr>
+    {% csrf_token %}
+    <td> There are no certificates for this entity. </td>
+    <td> </td>
+    <td> </td>
+    <td> </td>
+    <td> <input type="submit" onclick="" value="Download" formTarget=""> </td>
+    <td> <input type="submit" onclick="" value="Delete" formTarget=""> </td>
+</tr>
+{% endif %}

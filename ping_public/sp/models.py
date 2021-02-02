@@ -16,7 +16,7 @@ class Entity(models.Model):
 
     entity_id = models.CharField(max_length=100)
     name = models.CharField(max_length=100)
-    description = models.TextField()
+    description = models.TextField(blank=True, null=True)
     virtual_server_id = models.CharField(max_length=100, blank=True, null=True)
     is_encrypted = models.BooleanField(default=False)
     signature_validation = models.CharField(
@@ -253,19 +253,29 @@ class Destination(models.Model):
                 token[token_attribute['name']] = token_attribute['value']
 
 
+class DataStore(models.Model):
+    name = models.CharField(max_length=100, default='default')
+    key = models.CharField(max_length=100, default='default')
+    description = models.TextField()
+
+    def __str__(self):
+        return self.name
+
+
 class RelayState(models.Model):
     '''Third Level RelayState Class.'''
     SIMPLE = 'SIMPLE'
     REGEX = 'REGEX'
     URL_PATTERN_CHOICES = [
-        (SIMPLE, 'Simple URL Match with wildcard(*). (Example: https://*.hostname.com/uri* )'),
+        (SIMPLE, 'Simple URL Match with wildcard(*).'),
         (REGEX, 'Python Regular Expression Match.'),
     ]
 
     destination = models.ForeignKey(Destination, on_delete=models.CASCADE)
     destination_endpoint = models.CharField(max_length=200)
     # TODO - Need a seperate DataStore model so that this isn't just some random string here.
-    data_store = models.CharField(max_length=100, default='default')
+    #data_store = models.CharField(max_length=100, default='default')
+    data_store = models.ForeignKey(DataStore, on_delete=models.CASCADE)
     url_pattern = models.CharField(max_length=200)
     pattern_type = models.CharField(
         max_length=50,

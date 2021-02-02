@@ -1,0 +1,36 @@
+{% if relaystate_forms %}
+{% for relaystate_form in relaystate_forms %}
+{{ relaystate_form.data_store.label }}
+<p>eveything else below here:</p>
+<form class="relayStateForm">
+
+    <div class="relaystateEntry">
+
+        <div class="relaystateField">
+            <div><label for="{{ relaystate_form.data_store.id_for_label }}">{{ relaystate_form.data_store.label }}</label></div>
+            {{ relaystate_form.data_store }}
+        </div>
+
+        <div class="relaystateField">
+            <div><label for="pattern_type">PATTERN TYPE</label></div>
+            {{ relaystate_form.pattern_type }}
+        </div>
+
+        <div class="relaystateField">
+            <div><label for="destination_endpoint">DESTINATION ENDPOINT</label></div>
+            {{ relaystate_form.destination_endpoint }}
+        </div>
+
+        <input type="submit" value="SAVE">
+        <input type="submit" value="DELETE">
+
+    </div>
+    <div class="urlPattern relaystateField">
+        <div><label for="url_pattern">URL PATTERN</label></div>
+        {{ relaystate_form.url_pattern }}
+    </div>
+</form>
+{% endfor %}
+{% else %}
+<p>No RelayStates received from the view.</p>
+{% endif %}

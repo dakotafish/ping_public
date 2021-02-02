@@ -1,0 +1,20 @@
+{% if destination %}
+{{ destination.token_configuration }}
+<p>Everything else below here.. </p>
+<div class="destinationContainer">
+    <h1 id="destinationConfiguration">Destination Configuration </h1>
+    <div class="entityGrid">
+        <form>
+            <label>Destination Name:</label>
+            {{ destination.name }}
+
+            <label>Token Configuration:</label>
+            {{ destination.token_configuration }}
+        </form>
+
+    </div>
+</div>
+<div id="destinationConfigurationEnd"></div>
+{% else %}
+<p>No Destination received from view.</p>
+{% endif %}

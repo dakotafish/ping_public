@@ -1,43 +1,303 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    {% load static %}
-    <meta charset="UTF-8">
-    <title>Title</title>
-    <link rel="stylesheet" type="text/css" href="{% static 'general.css' %}" />
-</head>
-
-<body onload="updateAttrDisplay()">
-    <div class="entityConfigurationHeader" >
-        <h4>Entity Configuration</h4>
-    </div>
-    <div class="entityConfiguration">
-        <form action="{% url 'Update' 'sp' entity_form.MODEL entity_form.MODEL_INSTANCE %}" name="entityForm" id="entityForm" method="post">
-            {% csrf_token %}
-            {{ entity_form.as_p }}
-            <input type="submit" onclick="submitForm(event)" value="Save Entity">
-        </form>
+  <head>
+      {% load static %}
+    <meta charset="utf-8">
+    <title>PingPublic</title>
 
 
+    <style>
+        html {
+            font-family: sans-serif;
+        }
+
+        body {
+            margin: 0;
+        }
+
+        header {
+
+            height: 100px;
+        }
+
+        h1 {
+            text-align: left;
+            color: #3484F0;
+            line-height: 100px;
+            margin: 0;
+            margin-top: 20px;
+            /* margin-bottom: 20px; */
+            /* margin-left: 20px; */
+        }
+
+
+
+        .entityGrid {
+            /* margin: 20px; */
+
+            padding: 20px;
+            display: grid;
+            grid-gap: 10px;
+            grid-template-columns: repeat(2, 6fr);
+            grid-template-columns: max-content max-content;
+            text-align: center;
+            justify-content: left;
+        }
+
+        .entityGrid label {
+            text-align:left;
+        }
+
+
+
+        .certificateHeading {
+            margin-left: -20px;
+            padding-left: -20px;
+        }
+
+        .certificateContainer {
+            /* margin-left: 10%; */
+            padding: 20px;
+        }
+
+
+        table  th {
+            border:3px solid #F7F7F7;
+        }
+        tbody tr:nth-child(odd){
+            background-color: #F7F7F7;
+            /* color: #fff; */
+        }
+
+
+        /* input[type=text], select {
+            width: 100%;
+            padding: 12px 20px;
+            margin: 8px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        } */
+        /* .relaystateContainer {
+            width: 100%;
+        }
+        .relaystateContainer input[type=text] {
+            width: 100%;
+        } */
+
+/*
+        table{
+border-collapse:collapse;
+border:1px solid #FF0000;
+}
+        table td {
+border:1px solid #FF0000;
+}
+table th {
+border:1px solid #FF0000;
+}
+
+
+article:nth-of-type(3) {
+  flex: 2;
+}
+*/
+
+        .relaystateRow {
+            font-size: small;
+        }
+
+        .relaystateEntry {
+            display: flex;
+            flex: 1;
+            flex-wrap: wrap;
+        }
+
+        .relaystateField {
+            font-size: x-small;
+            flex: 1;
+        }
+
+        .urlPattern {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .relayStateForm {
+            border-style: solid;
+            border-width: 1px;
+            border-color: #F7F7F7;
+            -webkit-border-radius: 0px;
+            padding: 10px;
+            background-color: #F7F7F7;
+        }
+
+        .relayStateForm:nth-child(odd) {
+            background-color: #C4DBFA;
+        }
+
+        input[type=submit] {
+            width: auto;
+            height: auto;
+            max-height: 30px;
+            margin: 1%;
+            background-color: white;
+            background-color: #F7F7F7;
+            border-width: 1px;
+            border-color: #3484F0;
+            border-color: #0453F4;
+            color: #0453F4;
+            font-size: smaller;
+            -webkit-border-radius: 5px;
+            -webkit-border-radius: 0px;
+            padding: 6px;
+        }
+
+        .searchField {
+            border-style: solid;
+            border-width: 1px;
+            border-color: #F7F7F7;
+            -webkit-border-radius: 0px;
+            padding: 10px;
+            background-color: #F7F7F7;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .entityContainer {
+            margin-left: 25%;
+            height: 100vh;
+            overflow: scroll;
+            right: auto 0;
+            bottom: 5%;
+        }
+
+
+        .sideBarContainer {
+            height: 100vh;
+            width: 20%;
+            overflow-y: auto;
+            overflow-x: auto;
+            overflow: scroll;
+            float: left;
+            position: fixed;
+            background-color: #f7f7f7;
+            border-right-style: inset;
+        }
+
+        .sideBarGrid {
+            display: grid;
+            align-items: center;
+            border-bottom-style: inset;
+            text-align: justify;
+        }
+        .sideBarGrid span {
+            padding: 10%;
+            padding-right: 0;
+            width: 90%;
+            border-width: 1px;
+        }
+        .sideBarGrid span:hover {
+            border-style: inset;
+            border-width: 2px;
+            background-color: #757575;
+            background-color: white;
+        }
+
+        .sideBarGrid a {
+            padding: 10%;
+            padding-right: 0;
+            width: 90%;
+            border-width: 1px;
+
+            color: inherit;
+            text-decoration: inherit;
+        }
+        .sideBarGrid a:hover {
+            border-style: inset;
+            border-width: 2px;
+            background-color: #757575;
+            background-color: white;
+        }
 
 
 
 
 
+    </style>
+  </head>
+  <body>
 
-
-
-
-
-
-        <div class="certificateConfigurationHeader">
-            <h4>Certificate Configuration</h4>
+    <nav class="sideBarContainer">
+        <div class="sideBarGrid">
+            <a href="#">Home</a>
+            <a href="#">Inbound Connections</a>
+            <a href="#">Oundbound Connections</a>
+            <a href="#">Logs</a>
         </div>
-        <div class="certificateConfiguration">
-            {% if entity_certs %}
+        <div class="sideBarGrid">
+            <a id="entityNav" href="#entityConfiguration">Entity Configuration</a>
+            <a id="certificateNav" href="#certificateConfiguration">Certificates</a>
+            <a id="destinationNav" href="#destinationConfiguration">Destination Configuration</a>
+            <a id="relayStateNav" href="#relayStateConfiguration">RelayStates</a>
+            <a id="attributeNav" href="#attributeConfiguration">Attributes</a>
+        </div>
+    </nav>
+
+
+    <div id="entityContainer" onshow="newTest()" onscroll="updateVisibleSectionIndicators(event)" class="entityContainer">
+        <h1 id="entityConfiguration">Entity Configuration</h1>
+        <form action="{{ entity_template.update_url }}" name="entityForm" id="{{ entity_template.unique_element_id }}" method="post">
+            <div class="entityGrid">
+
+                {% csrf_token %}
+
+                <label>Configuration Name:</label>
+                {{ entity_template.form.name }}
+
+                <label>Configuration Description:</label>
+                {{ entity_template.form.description }}
+
+                <label>Entity ID:</label>
+                {{ entity_template.form.entity_id }}
+
+
+                <label>Virtual Server ID:</label>
+                {{ entity_template.form.virtual_server_id }}
+
+
+                <label>Signature validation: </label>
+                {{ entity_template.form.signature_validation }}
+
+
+
+                <label>Default relay state: </label>
+                {{ entity_template.form.default_relay_state }}
+
+
+                <label for="id_is_encrypted">Encrypted?</label>
+                {{ entity_template.form.is_encrypted }}
+
+                <input type="submit" value="Save" id="updateEntityButton" onclick="submitForm(event)">
+
+            </div>
+        </form>
+        <div id="entityConfigurationEnd"></div>
+
+
+
+
+
+
+
+
+        <div class="certificateContainer">
+            <h1 id="certificateConfiguration" class="certificateHeading">Certificates</h1>
+
             <table>
                 <colgroup span="5"></colgroup>
-                <tr>
+                <tbody><tr>
                     <th> Common Name </th>
                     <th> Serial Number </th>
                     <th> Issue Date </th>
@@ -45,120 +305,436 @@
                     <th></th>
                     <th></th>
                 </tr>
-                {% for certificate in entity_certs %}
+
+                {% for certificate in entity_template.certificates %}
                 <tr>
                     {% csrf_token %}
-                    <td> {{ certificate.common_name }} </td>
-                    <td> {{ certificate.serial_number }} </td>
-                    <td> {{ certificate.issue_date|date:'Y-m-d' }} </td>
-                    <td> {{ certificate.expiration_date|date:'Y-m-d' }} </td>
-                    <td> <input type="submit" onclick="submitTableForm(event)" value="Download" formTarget="{% url 'Update' 'sp' 'CERTIFICATE' certificate.id %}"> </td>
-                    <td> <input type="submit" onclick="submitTableForm(event, method='DELETE')" value="Delete" formTarget="{% url 'Delete' 'sp' 'CERTIFICATE' certificate.id %}"> </td>
+                    <td> {{ certificate.model_instance.common_name }} </td>
+                    <td> {{ certificate.model_instance.serial_number }} </td>
+                    <td> {{ certificate.model_instance.issue_date|date:'Y-m-d' }} </td>
+                    <td> {{ certificate.model_instance.expiration_date|date:'Y-m-d' }} </td>
+                    <td> <input type="submit" onclick="submitTableForm(event)" value="Download" formTarget="{% url 'Update' 'sp' 'CERTIFICATE' certificate.model_instance.id %}"> </td>
+                    <td> <input type="submit" onclick="submitTableForm(event, method='DELETE')" value="Delete" formTarget="{% url 'Delete' 'sp' 'CERTIFICATE' certificate.model_instance.id %}"> </td>
                 </tr>
                 {% endfor %}
-            </table>
-            {% else %}
-            <p> There are no certificates for this entity yet.</p>
-            {% endif %}
-            <form action="" id="certificateForm"  style="display:none">
+
+            </tbody></table>
+
+
+
+
+            <form action="{{ entity_template.new_certificate.create_new_url }}" id="certificateForm" style="display:none">
                 {% csrf_token %}
-                {{ certificate_form.as_p }}
-                <input type="submit" value="Save" onclick="uploadCertificate(event)" formTarget="{% url 'CreateNew' 'sp' certificate_form.MODEL certificate_form.PARENT_INSTANCE %}">
+                <p>
+                    <label for="id_upload_method">Upload method:</label>
+                    {{ entity_template.new_certificate.form.upload_method }}
+                </p>
+                <p>
+                    <label for="id_certificate_text">Certificate text:</label>
+                    {{ entity_template.new_certificate.form.certificate_text }}
+                </p>
+                <p>
+                    <label for="id_certificate_file">Certificate file:</label>
+                    {{ entity_template.new_certificate.form.certificate_file }}
+
+                </p>
+                <input type="submit" value="Save Certificate" onclick="uploadCertificate(event)" formtarget="{{ entity_template.new_certificate.create_new_url }}">
             </form>
-            <input type="submit" value="Add Certificate" id="addCertificateButton" onclick="displayCertificateForm()">
+            <input type="submit" value="Add New Certificate" id="addCertificateButton" onclick="displayCertificateForm()">
         </div>
+        <div id="certificateConfigurationEnd"></div>
 
 
 
+        {% for destination in entity_template.destinations %}
+        <div class="destinationContainer">
+            <h1 id="destinationConfiguration">Destination Configuration </h1>
+            <form action="{{ destination.update_url }}" id="{{ destination.unique_element_id }}" method="POST">
+                <div class="entityGrid">
+                    {% csrf_token %}
+
+                    <label>Destination Name:</label>
+                    {{ destination.form.name }}
 
 
+                    <label>Token Configuration:</label>
+                    {{ destination.form.token_configuration }}
 
 
+                    <label>Description:</label>
+                    {{ destination.form.description }}
 
-
-
-        {% if destination_map %}
-        {% for destination in destination_map %}
-        <div class="destinationConfigurationHeader" >
-            <h4>Destination Configuration</h4>
-        </div>
-        <div class="destinationConfiguration" >
-            <h5> Destination Name: {{ destination.destination_instance.name }}</h5>
-            <form action="{% url 'Update' 'sp' destination.destination_form.MODEL destination.destination_form.MODEL_INSTANCE %}" method="post">
-                {% csrf_token %}
-                {{ destination.destination_form.as_p }}
-                <input type="submit" onclick="submitForm(event)" value="Save Destination" >
+                <input type="submit" value="Save" id="updateDestinationButton" onclick="submitForm(event)">
+                </div>
             </form>
-            <input type="submit" onclick="getNewForm(this)" value="Create New Destination" target="{% url 'CreateNew' 'sp' destination.destination_form.MODEL destination.destination_form.PARENT_INSTANCE %}">
+        </div>
+        <div id="destinationConfigurationEnd"></div>
 
-            <div class="relaystateConfigurationHeader" >
-                <h4>RelayState Configuration</h4>
-            </div>
-            <div class="relaystateConfiguration" >
-                {% if destination.relay_state_forms %}
-                <h5> Relay State Configurations for Destination: {{ destination.destination_instance.name }}</h5>
-                <form action="">
+
+
+
+
+
+        <div class="relaystateContainer">
+            <div class="certificateContainer">
+                <h1 id="relayStateConfiguration" class="certificateHeading">RelayStates</h1>
+
+                <input class="searchField" type="text" id="relayStateFilter" name="relayStateFilter" placeholder="Filter..">
+
+
+
+                {% for relay_state in destination.relay_states %}
+
+                <form class="relayStateForm" action="{{ relay_state.update_url }}" id="{{ relay_state.unique_element_id }}" method="POST">
                     {% csrf_token %}
-                    <table>
-                        <colgroup span="5"></colgroup>
-                        <tr>
-                            <th> {{ destination.relay_state_forms.0.data_store.label }} </th>
-                            <th> {{ destination.relay_state_forms.0.pattern_type.label }} </th>
-                            <th> {{ destination.relay_state_forms.0.url_pattern.label }} </th>
-                            <th> {{ destination.relay_state_forms.0.destination_endpoint.label }} </th>
-                            <th></th>
-                        </tr>
-                        {% for relay_state_form in destination.relay_state_forms %}
-                        <tr>
-                            {% csrf_token %}
-                            <td> {{ relay_state_form.data_store }} </td>
-                            <td> {{ relay_state_form.pattern_type }} </td>
-                            <td> {{ relay_state_form.url_pattern }} </td>
-                            <td> {{ relay_state_form.destination_endpoint }} </td>
-                            <td> <input type="submit" onclick="submitTableForm(event)" value="Save" formTarget="{% url 'Update' 'sp' relay_state_form.MODEL relay_state_form.MODEL_INSTANCE %}"> </td>
-                        </tr>
-                        {% endfor %}
-                    </table>
-                    <input type="submit" value="+" onclick="getNewFormForTable(this)" target="{% url 'CreateNew' 'sp' 'RELAYSTATE' destination.destination_instance.id %}">
+                    <div class="relaystateEntry">
+
+                        <div class="relaystateField">
+                            <div><label for="data_store">DATA STORE</label></div>
+                            {{ relay_state.form.data_store }}
+                        </div>
+
+                        <div class="relaystateField">
+                            <div><label for="pattern_type">PATTERN TYPE</label></div>
+                            {{ relay_state.form.pattern_type }}
+                        </div>
+
+                        <div class="relaystateField">
+                            <div><label for="destination_endpoint">DESTINATION ENDPOINT</label></div>
+                            {{ relay_state.form.destination_endpoint }}
+                        </div>
+
+                        <input type="submit" value="SAVE" onclick="submitForm(event)">
+                        <input type="submit" value="DELETE">
+
+                    </div>
+                    <div class="urlPattern relaystateField">
+                        <div><label for="url_pattern">URL PATTERN</label></div>
+                        {{ relay_state.form.url_pattern }}
+
+                    </div>
                 </form>
-                {% else %}
-                <p> There are no RelayStates configured for this Destination yet.</p>
-                {% endif %}
-            </div>
+
+                {% endfor %}
 
 
+                <input type="submit" value="Add New RelayState" id="addRelayStateButton" onclick="someFunction()">
 
-
-            <div class="attributeConfigurationHeader">
-                <h4>Attribute Configuration</h4>
-            </div>
-            <div class="attributeConfiguration" >
-            {% if destination.attribute_forms %}
-            {% for attribute_form in destination.attribute_forms %}
-                <form action="{% url 'Update' 'sp' attribute_form.model attribute_form.model_instance %}" method="post" onchange="updateAttrDisplay()">
-                    {% csrf_token %}
-                    {{ attribute_form.as_p }}
-                    <input type="submit" value="Save Attribute">
-                </form>
-            {% endfor %}
-            {% else %}
-            <p> There are no Attributes configured for this Destination yet.</p>
-            {% endif %}
             </div>
         </div>
+        <div id="relayStateConfigurationEnd"></div>
+
+
+
+
+
+
+
+
+        <div class="relaystateContainer">
+            <div class="certificateContainer">
+                <h1 id="attributeConfiguration" class="certificateHeading">Attributes</h1>
+
+
+
+
+
+                {% for attribute in destination.attributes %}
+
+                <form class="relayStateForm" action="{{ attribute.update_url }}" id="{{ attribute.unique_element_id }}" method="POST">
+
+                    {% csrf_token %}
+
+                    <div class="relaystateEntry">
+
+                        <div class="relaystateField">
+                            <div><label for="attribute_type">ATTRIBUTE TYPE</label></div>
+                            {{ attribute.form.attribute_type }}
+                        </div>
+
+                        <div class="relaystateField">
+                            <div><label for="">TOKEN ATTRIBUTE NAME</label></div>
+                            {{ attribute.form.token_attribute_name }}
+                        </div>
+
+                        <div class="relaystateField">
+                            <div><label for="">TOKEN ATTRIBUTE VALUE</label></div>
+                            {{ attribute.form.token_attribute_value }}
+                        </div>
+
+                        <div class="relaystateField">
+                            <div><label for="">SAML ATTRIBUTE NAME</label></div>
+                            {{ attribute.form.saml_attribute_name }}
+                        </div>
+
+                        <div class="relaystateField">
+                            <div><label for="destination_endpoint">INCLUDE IN TOKEN</label></div>
+                            {{ attribute.form.include_in_token }}
+                        </div>
+
+                        <div class="relaystateField">
+                            <div><label for="">PARAMETERS</label></div>
+                            {{ attribute.form.query_parameters }}
+                        </div>
+
+                        <input type="submit" value="SAVE" onclick="submitForm(event)">
+                        <input type="submit" value="DELETE">
+
+                    </div>
+                    <div class="relaystateField urlPattern">
+                        <div><label for="">QUERY</label></div>
+                        {{ attribute.form.query }}
+
+                    </div>
+                </form>
+
+                {% endfor %}
+
+                <input type="submit" value="Add New Attribute" id="addRelayStateButton" onclick="someFunction()">
+
+
+
+            </div>
+        </div>
+        <div id="attributeConfigurationEnd"></div>
+
         {% endfor %}
-        {% else %}
-        <div class="destinationConfigurationHeader" >
-            <h4>Destination Configuration</h4>
-        </div>
-        <div class="destinationConfiguration" >
-            <p> There are no Destinations for this entity yet.</p>
-        </div>
-        {% endif %}
+
+
+
+
+
     </div>
-    <script src="{% static 'entity-detail.js' %}"></script>
-    <script src="{% static 'fileUploader.js' %}"></script>
+
+
     <script>
-        var csrftoken = '{{ csrf_token }}';
+    async function submitForm(event) {
+    event.preventDefault();
+    let submittedForm = event.target.parentElement.parentElement;
+    let url = submittedForm.action;
+    let formData = new FormData(submittedForm);
+    let submitButton = event.target;
+
+    let response = await fetch(url,
+        {
+            method: 'POST',
+            body: formData
+        });
+    if (response.ok) {
+        let responseText = await response.text();
+        submitButton.insertAdjacentHTML('afterend', `<span id="timedSpan" style="color: green"> ${responseText} </span`);
+        setTimeout(() => {
+            document.getElementById("timedSpan").remove();
+        }, 3000);
+        console.log(responseText);
+    } else {
+        let responseText = await response.text();
+        submitButton.insertAdjacentHTML('afterend', `<span id="timedSpan" style="color: red"> ${responseText} </span`);
+        setTimeout(() => {
+            document.getElementById("timedSpan").remove();
+        }, 3000);
+    }
+}
+
+
+function displayCertificateForm(){
+    let certificateForm = document.getElementById("certificateForm");
+    let addCertificateButton = document.getElementById("addCertificateButton");
+
+    if (certificateForm.hasAttribute('style')) {
+        certificateForm.removeAttribute('style');
+        addCertificateButton.value = 'Hide Certificate Form'
+    } else {
+        certificateForm.setAttribute('style', 'display:none')
+        addCertificateButton.value = 'Add Certificate'
+    }
+}
+
+
+function toggleUploadMethod() {
+    console.log('--toggleUploadMethod was triggered---')
+    let upload_method = document.getElementById("id_upload_method");
+    let selectedOption = upload_method.options[upload_method.selectedIndex].value;
+    let id_certificate_text = document.getElementById("id_certificate_text").parentElement;
+    let id_certificate_file = document.getElementById("id_certificate_file").parentElement;
+    if (selectedOption == 'FILE') {
+        id_certificate_text.style = "display:none";
+        id_certificate_file.style = "";
+    } else {
+        id_certificate_file.style = "display:none";
+        id_certificate_text.style = "";
+    }
+}
+
+async function uploadCertificate(event) {
+    console.log('----Uploading File----');
+    event.preventDefault();
+    let button = event.currentTarget;
+    let target = button.formTarget;
+    let form = button.parentElement;
+    let formData = new FormData(form);
+    let response = await fetch(target,
+        {method: 'POST',
+        body: formData}
+    );
+    if (response.ok) {
+        //let responseText = await response.text();
+        let responseBody = await response.json();
+        console.log("Response Body here-----");
+        console.log(responseBody);
+        //buttonCell.insertAdjacentHTML('afterend', `<span id="timedSpan" style="color: green"> ${responseBody.MESSAGE} </span`);
+        button.insertAdjacentHTML('afterend', `<span id="timedSpan" style="color: green"> ${responseBody.MESSAGE} </span`);
+        setTimeout(() => {
+            document.getElementById("timedSpan").remove();
+            //let timedSpan = document.getElementById("timedSpan").innerHTML = "";
+            //console.log(document.getElementById("timedSpan"));
+        }, 3000);
+        if (target.includes("create-new")) {
+            // blank forms use a target url of create-new
+            // once it's been created we change that target to the update url returned from the view
+            button.formTarget = responseBody.UPDATE_URL;
+        }
+    } else {
+        let responseText = await response.text();
+        buttonCell.insertAdjacentHTML('afterend', `<span id="timedSpan" style="color: red"> ${responseText} </span`);
+        setTimeout(() => {
+            document.getElementById("timedSpan").remove();
+            //let timedSpan = document.getElementById("timedSpan").innerHTML = "";
+        }, 3000);
+    }
+
+    console.log('---end----');
+}
+
+let upload_method = document.getElementById("id_upload_method").parentElement;
+upload_method.addEventListener("click", toggleUploadMethod);
+
+
+
+        function updateVisibleSectionIndicators(e) {
+            let viewHeight = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+            let viewTop = e.target.scrollTop;
+            let viewBottom = viewHeight + viewTop;
+
+            let entityConfig = document.getElementById("entityConfiguration");
+            let entityConfigEnd = document.getElementById("entityConfigurationEnd");
+            let entityNav = document.getElementById("entityNav");
+
+            let certificateConfig = document.getElementById("certificateConfiguration");
+            let certificateConfigEnd = document.getElementById("certificateConfigurationEnd");
+            let certificateNav = document.getElementById("certificateNav");
+
+            let destinationConfig = document.getElementById("destinationConfiguration");
+            let destinationConfigEnd = document.getElementById("destinationConfigurationEnd");
+            let destinationNav = document.getElementById("destinationNav");
+
+            let relayStateConfig = document.getElementById("relayStateConfiguration");
+            let relayStateConfigEnd = document.getElementById("relayStateConfigurationEnd");
+            let relayStateNav = document.getElementById("relayStateNav");
+
+            let attributeConfig = document.getElementById("attributeConfiguration");
+            let attributeConfigEnd = document.getElementById("attributeConfigurationEnd");
+            let attributeNav = document.getElementById("attributeNav");
+
+            let configList = [entityConfig, certificateConfig, destinationConfig, relayStateConfig, attributeConfig];
+            let configEndList = [entityConfigEnd, certificateConfigEnd, destinationConfigEnd, relayStateConfigEnd, attributeConfigEnd]
+            let navList = [entityNav, certificateNav, destinationNav, relayStateNav, attributeNav];
+
+            for (let i = 0; i < configList.length; i++) {
+                let temp = isElementInView(viewTop, viewBottom, configList[i], configEndList[i], navList[i]);
+                // if (temp) {
+                //     break;
+                // }
+            }
+
+            // let relayStateInView = isElementInView(viewTop, viewBottom, relayStateConfig, relayStateNav);
+            // if (relayStateInView) {
+            //     console.log('Your RelayState is showingggg!');
+            // }
+
+        }
+
+        function isElementInView(viewTop, viewBottom, element, elementEnd, relatedNavElement) {
+            /*
+            This needs a few improvements..
+            #1 - I need the location for the bottom of each element..
+                    right now the moment the header hits the top it un-highlights
+            #2 - Only highlight an element if
+                    A: The top and bottom are within view
+                    B: Or the element is currently taking up over ~half of the viewheight
+                    This fixes two problems..
+                        The first is that a nav element is highlighted when only a small part of the element is showing
+                        The second is that an element that is larger than the viewport (such as relaystates or attributes)
+                            would never be highlighted since they would extend past the top and bottom of the screen.
+
+            ALT Solution #2:
+                Take the average of the top and bottom of an element (ie the middle)
+                    and only highlight the element if the average/middle is within the viewport?
+            */
+            console.log('Top');
+            let elementTop = element.offsetTop;
+            let elementBottom = elementEnd.offsetTop;
+            let elementCenter = ((elementTop + elementBottom) / 2)
+
+            if (elementCenter <= viewBottom && elementCenter >= viewTop) {
+                relatedNavElement.style.background = "#C4DBFA";
+                return true
+            } else {
+                relatedNavElement.style.background = "inherit";
+                return false;
+            }
+
+            // if (elementTop <= viewBottom && elementTop >= viewTop) {
+            //     relatedNavElement.style.background = "#C4DBFA";
+            //     return true
+            // } else {
+            //     relatedNavElement.style.background = "inherit";
+            //     return false;
+            // }
+        }
+
+        function pageScroll(e) {
+            // console.log("Page Scroll event.");
+            // console.log("ScrollTop:");
+            // console.log(e.target.scrollTop);
+            // console.log("ScrollBottom:");
+            // console.log(e.target.scrollBottom);
+            let currentPosition = e.target.scrollTop;
+
+            // need to figure out where the bottom of the window is..
+
+
+            let entityConfigY = document.getElementById("entityConfiguration").offsetTop;
+            let certificateConfigY = document.getElementById("certificateConfiguration").offsetTop;
+            let destinationConfigY = document.getElementById("destinationConfiguration").offsetTop;
+            let relayStateConfigY = document.getElementById("relayStateConfiguration").offsetTop;
+            let attributeConfigY = document.getElementById("attributeConfiguration").offsetTop;
+
+            let relayStateConfigInView = false;
+            console.log('relaystate minus current:')
+            console.log(relayStateConfigY - currentPosition);
+
+            if (relayStateConfigY - currentPosition > 0) {
+                console.log("RelayState is in view!");
+            }
+
+            let relayStateRelativePosition = relayStateConfigY - currentPosition;
+
+
+            // I think I need to add a relayStateStart and a relayStateEnd so that I can tell when its on the screen
+
+
+        }
+        function testing() {
+            //console.log("Itsssssss workingggggg");
+        }
+        function newTest() {
+            //console.log("Your entity is showing ;)");
+        }
+        // document.getElementById("entityContainer").onscroll(() => {
+        //     console.log("Itsss workingggggg");
+        // })
     </script>
-</body>
+  <script src="{% static 'entity-detail.js' %}"></script>
+  </body>
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'general.css' %}" />
+</head>
+
+<body onload="updateAttrDisplay()">
+    <div class="entityConfigurationHeader" >
+        <h4>Entity Configuration</h4>
+    </div>
+    <div class="entityConfiguration">
+        <form action="{% url 'Update' 'sp' entity_form.MODEL entity_form.MODEL_INSTANCE %}" name="entityForm" id="entityForm" method="post">
+            {% csrf_token %}
+            <label>Connection Name {{ entity_form.name }}</label>
+            <br>
+            <label>Connection Name {{ entity_form.description }}</label>
+            <div class="inner-wrap">
+                <label>Connection Name <input type="text" name="field1" /></label>
+                <label>Address <input type="text" name="field1" /></label>
+            </div>
+            <div>
+                <label>Your Full Name <input type="text" name="field1" /></label>
+                <label>Address <input type="text" name="field1" /></label>
+            </div>
+            {{ entity_form.entity_id.label }}
+            {{ entity_form.entity_id }}
+            {{ entity_form.as_p }}
+            <input type="submit" onclick="submitForm(event)" value="Save Entity">
+        </form>
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <div class="certificateConfigurationHeader">
+            <h4>Certificate Configuration</h4>
+        </div>
+        <div class="certificateConfiguration">
+            {% if entity_certs %}
+            <table>
+                <colgroup span="5"></colgroup>
+                <tr>
+                    <th> Common Name </th>
+                    <th> Serial Number </th>
+                    <th> Issue Date </th>
+                    <th> Expiration Date </th>
+                    <th></th>
+                    <th></th>
+                </tr>
+                {% for certificate in entity_certs %}
+                <tr>
+                    {% csrf_token %}
+                    <td> {{ certificate.common_name }} </td>
+                    <td> {{ certificate.serial_number }} </td>
+                    <td> {{ certificate.issue_date|date:'Y-m-d' }} </td>
+                    <td> {{ certificate.expiration_date|date:'Y-m-d' }} </td>
+                    <td> <input type="submit" onclick="submitTableForm(event)" value="Download" formTarget="{% url 'Update' 'sp' 'CERTIFICATE' certificate.id %}"> </td>
+                    <td> <input type="submit" onclick="submitTableForm(event, method='DELETE')" value="Delete" formTarget="{% url 'Delete' 'sp' 'CERTIFICATE' certificate.id %}"> </td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+            <p> There are no certificates for this entity yet.</p>
+            {% endif %}
+            <form action="" id="certificateForm"  style="display:none">
+                {% csrf_token %}
+                {{ certificate_form.as_p }}
+                <input type="submit" value="Save" onclick="uploadCertificate(event)" formTarget="{% url 'CreateNew' 'sp' certificate_form.MODEL certificate_form.PARENT_INSTANCE %}">
+            </form>
+            <input type="submit" value="Add Certificate" id="addCertificateButton" onclick="displayCertificateForm()">
+        </div>
+
+
+
+
+
+
+
+
+
+
+        {% if destination_map %}
+        {% for destination in destination_map %}
+        <div class="destinationConfigurationHeader" >
+            <h4>Destination Configuration</h4>
+        </div>
+        <div class="destinationConfiguration" >
+            <h5> Destination Name: {{ destination.destination_instance.name }}</h5>
+            <form action="{% url 'Update' 'sp' destination.destination_form.MODEL destination.destination_form.MODEL_INSTANCE %}" method="post">
+                {% csrf_token %}
+                {{ destination.destination_form.as_p }}
+                <input type="submit" onclick="submitForm(event)" value="Save Destination" >
+            </form>
+            <input type="submit" onclick="getNewForm(this)" value="Create New Destination" target="{% url 'CreateNew' 'sp' destination.destination_form.MODEL destination.destination_form.PARENT_INSTANCE %}">
+
+            <div class="relaystateConfigurationHeader" >
+                <h4>RelayState Configuration</h4>
+            </div>
+            <div class="relaystateConfiguration" >
+                {% if destination.relay_state_forms %}
+                <h5> Relay State Configurations for Destination: {{ destination.destination_instance.name }}</h5>
+                <form action="">
+                    {% csrf_token %}
+                    <table>
+                        <colgroup span="5"></colgroup>
+                        <tr>
+                            <th> {{ destination.relay_state_forms.0.data_store.label }} </th>
+                            <th> {{ destination.relay_state_forms.0.pattern_type.label }} </th>
+                            <th> {{ destination.relay_state_forms.0.url_pattern.label }} </th>
+                            <th> {{ destination.relay_state_forms.0.destination_endpoint.label }} </th>
+                            <th></th>
+                        </tr>
+                        {% for relay_state_form in destination.relay_state_forms %}
+                        <tr>
+                            {% csrf_token %}
+                            <td> {{ relay_state_form.data_store }} </td>
+                            <td> {{ relay_state_form.pattern_type }} </td>
+                            <td> {{ relay_state_form.url_pattern }} </td>
+                            <td> {{ relay_state_form.destination_endpoint }} </td>
+                            <td> <input type="submit" onclick="submitTableForm(event)" value="Save" formTarget="{% url 'Update' 'sp' relay_state_form.MODEL relay_state_form.MODEL_INSTANCE %}"> </td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                    <input type="submit" value="+" onclick="getNewFormForTable(this)" target="{% url 'CreateNew' 'sp' 'RELAYSTATE' destination.destination_instance.id %}">
+                </form>
+                {% else %}
+                <p> There are no RelayStates configured for this Destination yet.</p>
+                {% endif %}
+            </div>
+
+
+
+
+            <div class="attributeConfigurationHeader">
+                <h4>Attribute Configuration</h4>
+            </div>
+            <div class="attributeConfiguration" >
+            {% if destination.attribute_forms %}
+            {% for attribute_form in destination.attribute_forms %}
+                <form action="{% url 'Update' 'sp' attribute_form.model attribute_form.model_instance %}" method="post" onchange="updateAttrDisplay()">
+                    {% csrf_token %}
+                    {{ attribute_form.as_p }}
+                    <input type="submit" value="Save Attribute">
+                </form>
+            {% endfor %}
+            {% else %}
+            <p> There are no Attributes configured for this Destination yet.</p>
+            {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="destinationConfigurationHeader" >
+            <h4>Destination Configuration</h4>
+        </div>
+        <div class="destinationConfiguration" >
+            <p> There are no Destinations for this entity yet.</p>
+        </div>
+        {% endif %}
+    </div>
+    <script src="{% static 'entity-detail.js' %}"></script>
+    <script src="{% static 'fileUploader.js' %}"></script>
+    <script>
+        var csrftoken = '{{ csrf_token }}';
+    </script>
+</body>
