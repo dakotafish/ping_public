@@ -279,7 +279,7 @@ article:nth-of-type(3) {
                 <label for="id_is_encrypted">Encrypted?</label>
                 {{ entity_template.form.is_encrypted }}
 
-                <input type="submit" value="Save" id="updateEntityButton" onclick="submitForm(event)">
+                <input type="submit" value="Save" formTarget="{{ entity_template.update_url }}" id="updateEntityButton" onclick="submitForm(event)">
 
             </div>
         </form>
@@ -314,7 +314,7 @@ article:nth-of-type(3) {
                     <td> {{ certificate.model_instance.issue_date|date:'Y-m-d' }} </td>
                     <td> {{ certificate.model_instance.expiration_date|date:'Y-m-d' }} </td>
                     <td> <input type="submit" onclick="submitTableForm(event)" value="Download" formTarget="{% url 'Update' 'sp' 'CERTIFICATE' certificate.model_instance.id %}"> </td>
-                    <td> <input type="submit" onclick="submitTableForm(event, method='DELETE')" value="Delete" formTarget="{% url 'Delete' 'sp' 'CERTIFICATE' certificate.model_instance.id %}"> </td>
+                    <td> <input type="submit" onclick="submitTableForm(event, method='DELETE')" value="Delete" formTarget="{{ certificate.delete_url }}"> </td>
                 </tr>
                 {% endfor %}
 
@@ -338,7 +338,7 @@ article:nth-of-type(3) {
                     {{ entity_template.new_certificate.form.certificate_file }}
 
                 </p>
-                <input type="submit" value="Save Certificate" onclick="uploadCertificate(event)" formtarget="{{ entity_template.new_certificate.create_new_url }}">
+                <input type="submit" value="Save Certificate" onclick="submitForm(event)" formtarget="{{ entity_template.new_certificate.create_new_url }}">
             </form>
             <input type="submit" value="Add New Certificate" id="addCertificateButton" onclick="displayCertificateForm()">
         </div>
@@ -364,7 +364,7 @@ article:nth-of-type(3) {
                     <label>Description:</label>
                     {{ destination.form.description }}
 
-                <input type="submit" value="Save" id="updateDestinationButton" onclick="submitForm(event)">
+                <input type="submit" value="Save" formTarget="{{ destination.update_url }}" id="updateDestinationButton" onclick="submitForm(event)">
                 </div>
             </form>
         </div>
@@ -404,7 +404,7 @@ article:nth-of-type(3) {
                             {{ relay_state.form.destination_endpoint }}
                         </div>
 
-                        <input type="submit" value="SAVE" onclick="submitForm(event)">
+                        <input type="submit" value="SAVE" onclick="submitForm(event)" formTarget="{{ relay_state.update_url }}">
                         <input type="submit" value="DELETE">
 
                     </div>
@@ -477,7 +477,7 @@ article:nth-of-type(3) {
                             {{ attribute.form.query_parameters }}
                         </div>
 
-                        <input type="submit" value="SAVE" onclick="submitForm(event)">
+                        <input type="submit" value="SAVE" onclick="submitForm(event)" formTarget="{{ attribute.update_url }}">
                         <input type="submit" value="DELETE">
 
                     </div>
@@ -490,7 +490,7 @@ article:nth-of-type(3) {
 
                 {% endfor %}
 
-                <input type="submit" value="Add New Attribute" id="addRelayStateButton" onclick="someFunction()">
+                <input type="submit" value="Add New Attribute" id="addRelayStateButton" onclick="someFunction()" formTarget="{{ attribute.create_new_url }}">
 
 
 
@@ -508,233 +508,11 @@ article:nth-of-type(3) {
 
 
     <script>
-    async function submitForm(event) {
-    event.preventDefault();
-    let submittedForm = event.target.parentElement.parentElement;
-    let url = submittedForm.action;
-    let formData = new FormData(submittedForm);
-    let submitButton = event.target;
 
-    let response = await fetch(url,
-        {
-            method: 'POST',
-            body: formData
-        });
-    if (response.ok) {
-        let responseText = await response.text();
-        submitButton.insertAdjacentHTML('afterend', `<span id="timedSpan" style="color: green"> ${responseText} </span`);
-        setTimeout(() => {
-            document.getElementById("timedSpan").remove();
-        }, 3000);
-        console.log(responseText);
-    } else {
-        let responseText = await response.text();
-        submitButton.insertAdjacentHTML('afterend', `<span id="timedSpan" style="color: red"> ${responseText} </span`);
-        setTimeout(() => {
-            document.getElementById("timedSpan").remove();
-        }, 3000);
-    }
-}
-
-
-function displayCertificateForm(){
-    let certificateForm = document.getElementById("certificateForm");
-    let addCertificateButton = document.getElementById("addCertificateButton");
-
-    if (certificateForm.hasAttribute('style')) {
-        certificateForm.removeAttribute('style');
-        addCertificateButton.value = 'Hide Certificate Form'
-    } else {
-        certificateForm.setAttribute('style', 'display:none')
-        addCertificateButton.value = 'Add Certificate'
-    }
-}
-
-
-function toggleUploadMethod() {
-    console.log('--toggleUploadMethod was triggered---')
-    let upload_method = document.getElementById("id_upload_method");
-    let selectedOption = upload_method.options[upload_method.selectedIndex].value;
-    let id_certificate_text = document.getElementById("id_certificate_text").parentElement;
-    let id_certificate_file = document.getElementById("id_certificate_file").parentElement;
-    if (selectedOption == 'FILE') {
-        id_certificate_text.style = "display:none";
-        id_certificate_file.style = "";
-    } else {
-        id_certificate_file.style = "display:none";
-        id_certificate_text.style = "";
-    }
-}
-
-async function uploadCertificate(event) {
-    console.log('----Uploading File----');
-    event.preventDefault();
-    let button = event.currentTarget;
-    let target = button.formTarget;
-    let form = button.parentElement;
-    let formData = new FormData(form);
-    let response = await fetch(target,
-        {method: 'POST',
-        body: formData}
-    );
-    if (response.ok) {
-        //let responseText = await response.text();
-        let responseBody = await response.json();
-        console.log("Response Body here-----");
-        console.log(responseBody);
-        //buttonCell.insertAdjacentHTML('afterend', `<span id="timedSpan" style="color: green"> ${responseBody.MESSAGE} </span`);
-        button.insertAdjacentHTML('afterend', `<span id="timedSpan" style="color: green"> ${responseBody.MESSAGE} </span`);
-        setTimeout(() => {
-            document.getElementById("timedSpan").remove();
-            //let timedSpan = document.getElementById("timedSpan").innerHTML = "";
-            //console.log(document.getElementById("timedSpan"));
-        }, 3000);
-        if (target.includes("create-new")) {
-            // blank forms use a target url of create-new
-            // once it's been created we change that target to the update url returned from the view
-            button.formTarget = responseBody.UPDATE_URL;
-        }
-    } else {
-        let responseText = await response.text();
-        buttonCell.insertAdjacentHTML('afterend', `<span id="timedSpan" style="color: red"> ${responseText} </span`);
-        setTimeout(() => {
-            document.getElementById("timedSpan").remove();
-            //let timedSpan = document.getElementById("timedSpan").innerHTML = "";
-        }, 3000);
-    }
-
-    console.log('---end----');
-}
-
-let upload_method = document.getElementById("id_upload_method").parentElement;
-upload_method.addEventListener("click", toggleUploadMethod);
-
-
-
-        function updateVisibleSectionIndicators(e) {
-            let viewHeight = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
-            let viewTop = e.target.scrollTop;
-            let viewBottom = viewHeight + viewTop;
-
-            let entityConfig = document.getElementById("entityConfiguration");
-            let entityConfigEnd = document.getElementById("entityConfigurationEnd");
-            let entityNav = document.getElementById("entityNav");
-
-            let certificateConfig = document.getElementById("certificateConfiguration");
-            let certificateConfigEnd = document.getElementById("certificateConfigurationEnd");
-            let certificateNav = document.getElementById("certificateNav");
-
-            let destinationConfig = document.getElementById("destinationConfiguration");
-            let destinationConfigEnd = document.getElementById("destinationConfigurationEnd");
-            let destinationNav = document.getElementById("destinationNav");
-
-            let relayStateConfig = document.getElementById("relayStateConfiguration");
-            let relayStateConfigEnd = document.getElementById("relayStateConfigurationEnd");
-            let relayStateNav = document.getElementById("relayStateNav");
-
-            let attributeConfig = document.getElementById("attributeConfiguration");
-            let attributeConfigEnd = document.getElementById("attributeConfigurationEnd");
-            let attributeNav = document.getElementById("attributeNav");
-
-            let configList = [entityConfig, certificateConfig, destinationConfig, relayStateConfig, attributeConfig];
-            let configEndList = [entityConfigEnd, certificateConfigEnd, destinationConfigEnd, relayStateConfigEnd, attributeConfigEnd]
-            let navList = [entityNav, certificateNav, destinationNav, relayStateNav, attributeNav];
-
-            for (let i = 0; i < configList.length; i++) {
-                let temp = isElementInView(viewTop, viewBottom, configList[i], configEndList[i], navList[i]);
-                // if (temp) {
-                //     break;
-                // }
-            }
-
-            // let relayStateInView = isElementInView(viewTop, viewBottom, relayStateConfig, relayStateNav);
-            // if (relayStateInView) {
-            //     console.log('Your RelayState is showingggg!');
-            // }
-
-        }
-
-        function isElementInView(viewTop, viewBottom, element, elementEnd, relatedNavElement) {
-            /*
-            This needs a few improvements..
-            #1 - I need the location for the bottom of each element..
-                    right now the moment the header hits the top it un-highlights
-            #2 - Only highlight an element if
-                    A: The top and bottom are within view
-                    B: Or the element is currently taking up over ~half of the viewheight
-                    This fixes two problems..
-                        The first is that a nav element is highlighted when only a small part of the element is showing
-                        The second is that an element that is larger than the viewport (such as relaystates or attributes)
-                            would never be highlighted since they would extend past the top and bottom of the screen.
-
-            ALT Solution #2:
-                Take the average of the top and bottom of an element (ie the middle)
-                    and only highlight the element if the average/middle is within the viewport?
-            */
-            console.log('Top');
-            let elementTop = element.offsetTop;
-            let elementBottom = elementEnd.offsetTop;
-            let elementCenter = ((elementTop + elementBottom) / 2)
-
-            if (elementCenter <= viewBottom && elementCenter >= viewTop) {
-                relatedNavElement.style.background = "#C4DBFA";
-                return true
-            } else {
-                relatedNavElement.style.background = "inherit";
-                return false;
-            }
-
-            // if (elementTop <= viewBottom && elementTop >= viewTop) {
-            //     relatedNavElement.style.background = "#C4DBFA";
-            //     return true
-            // } else {
-            //     relatedNavElement.style.background = "inherit";
-            //     return false;
-            // }
-        }
-
-        function pageScroll(e) {
-            // console.log("Page Scroll event.");
-            // console.log("ScrollTop:");
-            // console.log(e.target.scrollTop);
-            // console.log("ScrollBottom:");
-            // console.log(e.target.scrollBottom);
-            let currentPosition = e.target.scrollTop;
-
-            // need to figure out where the bottom of the window is..
-
-
-            let entityConfigY = document.getElementById("entityConfiguration").offsetTop;
-            let certificateConfigY = document.getElementById("certificateConfiguration").offsetTop;
-            let destinationConfigY = document.getElementById("destinationConfiguration").offsetTop;
-            let relayStateConfigY = document.getElementById("relayStateConfiguration").offsetTop;
-            let attributeConfigY = document.getElementById("attributeConfiguration").offsetTop;
-
-            let relayStateConfigInView = false;
-            console.log('relaystate minus current:')
-            console.log(relayStateConfigY - currentPosition);
-
-            if (relayStateConfigY - currentPosition > 0) {
-                console.log("RelayState is in view!");
-            }
-
-            let relayStateRelativePosition = relayStateConfigY - currentPosition;
-
-
-            // I think I need to add a relayStateStart and a relayStateEnd so that I can tell when its on the screen
-
-
-        }
-        function testing() {
-            //console.log("Itsssssss workingggggg");
-        }
-        function newTest() {
-            //console.log("Your entity is showing ;)");
-        }
-        // document.getElementById("entityContainer").onscroll(() => {
-        //     console.log("Itsss workingggggg");
-        // })
     </script>
-  <script src="{% static 'entity-detail.js' %}"></script>
+    <script src="{% static 'entity-detail.js' %}"></script>
+    <script>
+        var csrftoken = '{{ csrf_token }}';
+    </script>
   </body>
 </html>

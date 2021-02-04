@@ -168,6 +168,7 @@ class Delete(generic.DetailView):
 
     def delete(self, request, *args, **kwargs):
         # to access the body of a delete request you just use request.body
+        print('Received the Delete Request --------')
         model = kwargs['model']
         model_instance_id = kwargs['model_id']
         status = self.process_delete(model=model, model_instance_id=model_instance_id)
@@ -224,6 +225,8 @@ class CreateNew(generic.DetailView):
         status = self.process_new_model(model=model, parent_instance=parent_instance, post_data=post_data, files=files)
         #return HttpResponse(status)
         return JsonResponse(status, safe=False)
+        # TODO - Update, Delete, and CreateNew should all return a JsonResponse for all POST requests
+        #  GET requests to CreateNew could still return a template and return that..
 
     def process_new_model(self, model, parent_instance, post_data, files):
         model_to_update = model.upper()

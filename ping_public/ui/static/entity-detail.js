@@ -1,28 +1,132 @@
-async function submitEntityForm(event) {
-    event.preventDefault();
-    let submittedForm = event.target.parentElement.parentElement;
-    let url = submittedForm.action;
-    let formData = new FormData(submittedForm);
-    let submitButton = event.target;
+class Form {
+    constructor(eventTarget) {
+        this.submitButton = eventTarget.target;
+        this.targetUrl = eventTarget.url;
+        this.role = eventTarget.role;
+        this.action = eventTarget.action;
+        this.model = eventTarget.model;
+        this.modelId = eventTarget.modelId
+        this.uniqueElementId = `${this.model}_${this.modelId}`;
+    }
 
-    let response = await fetch(url,
-        {
-            method: 'POST',
-            body: formData
-        });
-    if (response.ok) {
-        let responseText = await response.text();
-        submitButton.insertAdjacentHTML('afterend', `<span id="timedSpan" style="color: green"> ${responseText} </span`);
+    async submitForm(method='POST') {
+        let formData = new FormData(this.submittedForm);
+        let response = await fetch(this.targetUrl,
+            {
+                method: method,
+                body: formData,
+                headers: {'X-CSRFToken': csrftoken}
+            });
+        if (response.ok) {
+            this.responseText = await response.text();
+            //this.responseBody = response.clone().json();
+            //this.responseBody = await response.json();
+            this.success = true;
+        } else {
+            this.response = response;
+            this.responseText = await response.text();
+            this.responseBody = await response.json();
+            this.success = false;
+        }
+        this.displayStatusMessage();
+        this.continueProcessing();
+    };
+
+    removeTimedSpan() {
         setTimeout(() => {
             document.getElementById("timedSpan").remove();
         }, 3000);
-        console.log(responseText);
-    } else {
-        let responseText = await response.text();
-        submitButton.insertAdjacentHTML('afterend', `<span id="timedSpan" style="color: red"> ${responseText} </span`);
-        setTimeout(() => {
-            document.getElementById("timedSpan").remove();
-        }, 3000);
+    };
+
+    displayStatusMessage(messageLocation='afterend') {
+        if (this.success) {
+            var html = `<span id="timedSpan" style="color: green"> ${this.responseText} </span`;
+        } else {
+            var html = `<span id="timedSpan" style="color: red"> ${this.responseText} </span`;
+        }
+
+        this.submitButton.insertAdjacentHTML(messageLocation, html);
+        this.removeTimedSpan();
+    };
+
+    continueProcessing() {
+        // pass
+        // this method can be implemented on child classes when necessary
+    };
+}
+
+class StandardForm extends Form {
+    constructor(eventTarget) {
+        super(eventTarget);
+        this.submittedForm = document.getElementById(this.uniqueElementId);
+    }
+}
+
+class CertificateForm extends Form {
+    constructor(eventTarget) {
+        super(eventTarget);
+        this.submittedForm = document.getElementById("certificateForm");
+    }
+
+//    displayStatusMessage(messageLocation='afterend') {
+//        if (this.success) {
+//            //let message = this.responseBody.MESSAGE
+//            let message = this.responseText
+//            let html = `<span id="timedSpan" style="color: green"> ${message} </span`;
+//        } else {
+//            let html = `<span id="timedSpan" style="color: red"> ${message} </span`;
+//        }
+//        this.submitButton.insertAdjacentHTML(messageLocation, html);
+//        setTimeout( this.removeTimedSpan(), 3000);
+//    };
+}
+
+
+function submitForm(event) {
+    event.preventDefault();
+    const UPDATE = 'UPDATE';
+    const DELETE = 'DELETE';
+    const CREATENEW = 'CREATE-NEW';
+
+
+    let urlSegments = event.target.formTarget.toUpperCase().split('/');
+    let eventTarget = {
+        target: event.target,
+        url: event.target.formTarget,
+        role: urlSegments[2],
+        action: urlSegments[3],
+        model: urlSegments[4],
+        modelId: urlSegments[5],
+    };
+
+    let action = eventTarget.action;
+    let model = eventTarget.model;
+
+    if (model == 'ENTITY') {
+        if (action == UPDATE) {
+            let form = new StandardForm(eventTarget);
+            form.submitForm();
+        }
+    } else if (model == 'CERTIFICATE') {
+        if (action == CREATENEW) {
+            let form = new CertificateForm(eventTarget);
+            form.submitForm();
+        }
+    } else if (model == 'DESTINATION') {
+        if (action == UPDATE) {
+            let form = new StandardForm(eventTarget);
+            form.submitForm();
+        }
+    } else if (model ==  'RELAYSTATE') {
+        if (action == UPDATE) {
+            let form = new StandardForm(eventTarget);
+            form.submitForm();
+        }
+    } else if (model == 'ATTRIBUTE') {
+        if (action == UPDATE) {
+            let form = new StandardForm(eventTarget);
+            form.submitForm();
+        }
     }
 }
 
@@ -37,10 +141,10 @@ function displayCertificateForm(){
         certificateForm.setAttribute('style', 'display:none')
         addCertificateButton.value = 'Add Certificate'
     }
+    toggleUploadMethod();
 }
 
 function toggleUploadMethod() {
-    console.log('--toggleUploadMethod was triggered---')
     let upload_method = document.getElementById("id_upload_method");
     let selectedOption = upload_method.options[upload_method.selectedIndex].value;
     let id_certificate_text = document.getElementById("id_certificate_text").parentElement;
@@ -53,44 +157,5 @@ function toggleUploadMethod() {
         id_certificate_text.style = "";
     }
 }
-
-async function uploadCertificate(event) {
-    console.log('----Uploading File----');
-    event.preventDefault();
-    let button = event.currentTarget;
-    let target = button.formTarget;
-    let form = button.parentElement;
-    let formData = new FormData(form);
-    let response = await fetch(target,
-        {method: 'POST',
-        body: formData}
-    );
-    if (response.ok) {
-        //let responseText = await response.text();
-        let responseBody = await response.json();
-        //buttonCell.insertAdjacentHTML('afterend', `<span id="timedSpan" style="color: green"> ${responseBody.MESSAGE} </span`);
-        button.insertAdjacentHTML('afterend', `<span id="timedSpan" style="color: green"> ${responseBody.MESSAGE} </span`);
-        setTimeout(() => {
-            document.getElementById("timedSpan").remove();
-            //let timedSpan = document.getElementById("timedSpan").innerHTML = "";
-            //console.log(document.getElementById("timedSpan"));
-        }, 3000);
-        if (target.includes("create-new")) {
-            // blank forms use a target url of create-new
-            // once it's been created we change that target to the update url returned from the view
-            button.formTarget = responseBody.UPDATE_URL;
-        }
-    } else {
-        let responseText = await response.text();
-        buttonCell.insertAdjacentHTML('afterend', `<span id="timedSpan" style="color: red"> ${responseText} </span`);
-        setTimeout(() => {
-            document.getElementById("timedSpan").remove();
-            //let timedSpan = document.getElementById("timedSpan").innerHTML = "";
-        }, 3000);
-    }
-
-    console.log('---end----');
-}
-
 let upload_method = document.getElementById("id_upload_method").parentElement;
-upload_method.addEventListener("click", toggleUploadMethod);
+upload_method.addEventListener("input", toggleUploadMethod);
