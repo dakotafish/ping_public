@@ -9,7 +9,7 @@ class Form {
         this.uniqueElementId = `${this.model}_${this.modelId}`;
     }
 
-    async submitForm(method='POST') {
+    async submitForm(method='POST', action) {
         let formData = new FormData(this.submittedForm);
         let response = await fetch(this.targetUrl,
             {
@@ -18,18 +18,41 @@ class Form {
                 headers: {'X-CSRFToken': csrftoken}
             });
         if (response.ok) {
-            this.responseText = await response.text();
-            //this.responseBody = response.clone().json();
-            //this.responseBody = await response.json();
+            this.responseBody = await response.json();
             this.success = true;
         } else {
-            this.response = response;
-            this.responseText = await response.text();
             this.responseBody = await response.json();
             this.success = false;
         }
         this.displayStatusMessage();
-        this.continueProcessing();
+        this.continueProcessing(action);
+    };
+
+    async deleteInstance(method='DELETE', action) {
+
+        let row = document.getElementById(this.uniqueElementId);
+        let message = `Are you sure you want to delete this item?\n\t
+                        CN = ${row.children.common_name.innerText}
+                        Issue Date = ${row.children.issue_date.innerText}
+                        Exp Date = ${row.children.expiration_date.innerText}`
+        let userConfirmation = confirm(message);
+
+        if (userConfirmation == true) {
+            let response = await fetch(this.targetUrl,
+                {
+                    method: method,
+                    headers: {'X-CSRFToken': csrftoken}
+                });
+            if (response.ok) {
+                this.responseBody = await response.json();
+                this.success = true;
+            } else {
+                this.responseBody = await response.json();
+                this.success = false;
+            }
+            this.displayStatusMessage();
+            this.continueProcessing('DELETE');
+        }
     };
 
     removeTimedSpan() {
@@ -40,9 +63,9 @@ class Form {
 
     displayStatusMessage(messageLocation='afterend') {
         if (this.success) {
-            var html = `<span id="timedSpan" style="color: green"> ${this.responseText} </span`;
+            var html = `<span id="timedSpan" style="color: green"> ${this.responseBody.message} </span`;
         } else {
-            var html = `<span id="timedSpan" style="color: red"> ${this.responseText} </span`;
+            var html = `<span id="timedSpan" style="color: red"> ${this.responseBody.message} </span`;
         }
 
         this.submitButton.insertAdjacentHTML(messageLocation, html);
@@ -66,6 +89,28 @@ class CertificateForm extends Form {
     constructor(eventTarget) {
         super(eventTarget);
         this.submittedForm = document.getElementById("certificateForm");
+    }
+
+    continueProcessing(action) {
+        if (action == 'CREATE-NEW') {
+            // add the new certificate to the certificate table
+            let certTable = document.getElementById('certificateTable');
+            let lastRow = certTable.lastElementChild.lastElementChild;
+            let newRow = lastRow.cloneNode(true);
+            newRow.children.common_name.innerText = this.responseBody.common_name;
+            newRow.children.serial_number.innerText = this.responseBody.serial_number;
+            newRow.children.issue_date.innerText = this.responseBody.issue_date;
+            newRow.children.expiration_date.innerText = this.responseBody.expiration_date;
+            //newRow.children.downloadButton.lastElementChild.formTarget
+            newRow.children.deleteButton.lastElementChild.formTarget = this.responseBody.delete_url;
+            newRow.style="color: green";
+            lastRow.insertAdjacentElement('afterend', newRow);
+            setTimeout(() => { newRow.style="color: inherit"; }, 3000);
+        } else if (action == 'DELETE') {
+            // remove the deleted certificate from the certificate table
+            let rowToDelete = document.getElementById(this.uniqueElementId);
+            rowToDelete.remove();
+        }
     }
 
 //    displayStatusMessage(messageLocation='afterend') {
@@ -105,27 +150,30 @@ function submitForm(event) {
     if (model == 'ENTITY') {
         if (action == UPDATE) {
             let form = new StandardForm(eventTarget);
-            form.submitForm();
+            form.submitForm(action);
         }
     } else if (model == 'CERTIFICATE') {
         if (action == CREATENEW) {
             let form = new CertificateForm(eventTarget);
-            form.submitForm();
+            form.submitForm(action);
+        } else if (action == DELETE) {
+            let form = new CertificateForm(eventTarget);
+            form.deleteInstance(action);
         }
     } else if (model == 'DESTINATION') {
         if (action == UPDATE) {
             let form = new StandardForm(eventTarget);
-            form.submitForm();
+            form.submitForm(action);
         }
     } else if (model ==  'RELAYSTATE') {
         if (action == UPDATE) {
             let form = new StandardForm(eventTarget);
-            form.submitForm();
+            form.submitForm(action);
         }
     } else if (model == 'ATTRIBUTE') {
         if (action == UPDATE) {
             let form = new StandardForm(eventTarget);
-            form.submitForm();
+            form.submitForm(action);
         }
     }
 }

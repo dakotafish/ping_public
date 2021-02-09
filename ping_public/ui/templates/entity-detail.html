@@ -295,7 +295,7 @@ article:nth-of-type(3) {
         <div class="certificateContainer">
             <h1 id="certificateConfiguration" class="certificateHeading">Certificates</h1>
 
-            <table>
+            <table id="certificateTable">
                 <colgroup span="5"></colgroup>
                 <tbody><tr>
                     <th> Common Name </th>
@@ -307,14 +307,14 @@ article:nth-of-type(3) {
                 </tr>
 
                 {% for certificate in entity_template.certificates %}
-                <tr>
+                <tr id="CERTIFICATE_{{ certificate.model_instance.id }}">
                     {% csrf_token %}
-                    <td> {{ certificate.model_instance.common_name }} </td>
-                    <td> {{ certificate.model_instance.serial_number }} </td>
-                    <td> {{ certificate.model_instance.issue_date|date:'Y-m-d' }} </td>
-                    <td> {{ certificate.model_instance.expiration_date|date:'Y-m-d' }} </td>
-                    <td> <input type="submit" onclick="submitTableForm(event)" value="Download" formTarget="{% url 'Update' 'sp' 'CERTIFICATE' certificate.model_instance.id %}"> </td>
-                    <td> <input type="submit" onclick="submitTableForm(event, method='DELETE')" value="Delete" formTarget="{{ certificate.delete_url }}"> </td>
+                    <td name="common_name"> {{ certificate.model_instance.common_name }} </td>
+                    <td name="serial_number"> {{ certificate.model_instance.serial_number }} </td>
+                    <td name="issue_date"> {{ certificate.model_instance.issue_date|date:'Y-m-d' }} </td>
+                    <td name="expiration_date"> {{ certificate.model_instance.expiration_date|date:'Y-m-d' }} </td>
+                    <td name="downloadButton"> <input type="submit" onclick="submitTableForm(event)" value="Download" formTarget="{% url 'Update' 'sp' 'CERTIFICATE' certificate.model_instance.id %}"> </td>
+                    <td name="deleteButton"> <input type="submit" onclick="submitForm(event)" value="Delete" formTarget="{{ certificate.delete_url }}"> </td>
                 </tr>
                 {% endfor %}
 

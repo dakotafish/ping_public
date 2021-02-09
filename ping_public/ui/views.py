@@ -134,7 +134,8 @@ class Update(generic.DetailView):
         model_instance_id = kwargs['model_id']
         post_data = request.POST.copy()
         status = self.process_update(model=model, model_instance_id=model_instance_id, post_data=post_data)
-        return HttpResponse(status['message'], status=status['status'])
+        return JsonResponse(status)
+        #return HttpResponse(status['message'], status=status['status'])
 
     def process_update(self, model, model_instance_id, post_data):
         model_to_update = model.upper()
@@ -163,8 +164,8 @@ class Update(generic.DetailView):
 
 
 class Delete(generic.DetailView):
-    SUCCESS = {'STATUS': 200, 'MESSAGE': 'Deleted Successfully.'}
-    FAIL = {'STATUS': 500, 'MESSAGE': 'Something went wrong, please try again. Errors: {0}'}
+    SUCCESS = {'status': 200, 'message': 'Deleted Successfully.'}
+    FAIL = {'status': 500, 'message': 'Something went wrong, please try again. Errors: {0}'}
 
     def delete(self, request, *args, **kwargs):
         # to access the body of a delete request you just use request.body
@@ -224,7 +225,7 @@ class CreateNew(generic.DetailView):
         files = request.FILES
         status = self.process_new_model(model=model, parent_instance=parent_instance, post_data=post_data, files=files)
         #return HttpResponse(status)
-        return JsonResponse(status, safe=False)
+        return JsonResponse(status) #, safe=False)
         # TODO - Update, Delete, and CreateNew should all return a JsonResponse for all POST requests
         #  GET requests to CreateNew could still return a template and return that..
 
@@ -255,14 +256,22 @@ class CreateNew(generic.DetailView):
 
             if form.is_valid() and len(certificate) > 0:
                 new_model_instance = form.save_certificate(certificate=certificate, parent_instance=parent_instance)
-                new_update_url = reverse('Update', kwargs={
+                delete_url = reverse('Delete', kwargs={
                     'role': 'sp',
                     'model': model_to_update,
                     'model_id': new_model_instance.id,
                 })
+                common_name = new_model_instance.common_name
+                serial_number = str(new_model_instance.serial_number)
+                issue_date = str(new_model_instance.issue_date).split(' ')[0]
+                expiration_date = str(new_model_instance.issue_date).split(' ')[0]
                 status = {
-                    'MESSAGE': 'SUCCESS',
-                    'UPDATE_URL': new_update_url,
+                    'message': 'SUCCESS',
+                    'delete_url': delete_url,
+                    'common_name': common_name,
+                    'serial_number': serial_number,
+                    'issue_date': issue_date,
+                    'expiration_date': expiration_date,
                 }
                 print(status)
                 return status
