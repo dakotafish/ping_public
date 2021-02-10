@@ -313,9 +313,10 @@ article:nth-of-type(3) {
                     <td name="serial_number"> {{ certificate.model_instance.serial_number }} </td>
                     <td name="issue_date"> {{ certificate.model_instance.issue_date|date:'Y-m-d' }} </td>
                     <td name="expiration_date"> {{ certificate.model_instance.expiration_date|date:'Y-m-d' }} </td>
-                    <td name="downloadButton"> <input type="submit" onclick="submitTableForm(event)" value="Download" formTarget="{% url 'Update' 'sp' 'CERTIFICATE' certificate.model_instance.id %}"> </td>
+                    <td name="downloadButton"> <input type="submit" onclick="download(`{{ certificate.model_instance.certificate }}`, '{{ certificate.model_instance.common_name }}')" value="Download"> </td>
                     <td name="deleteButton"> <input type="submit" onclick="submitForm(event)" value="Delete" formTarget="{{ certificate.delete_url }}"> </td>
                 </tr>
+
                 {% endfor %}
 
             </tbody></table>

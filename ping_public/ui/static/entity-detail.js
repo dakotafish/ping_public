@@ -207,3 +207,22 @@ function toggleUploadMethod() {
 }
 let upload_method = document.getElementById("id_upload_method").parentElement;
 upload_method.addEventListener("input", toggleUploadMethod);
+
+function download(data, filename) {
+    //var file = new Blob([data], {type: type});
+    var file = new Blob([data], {type: 'text/plain'});
+    if (window.navigator.msSaveOrOpenBlob) // IE10+
+        window.navigator.msSaveOrOpenBlob(file, filename);
+    else { // Others
+        var a = document.createElement("a"),
+                url = URL.createObjectURL(file);
+        a.href = url;
+        a.download = filename + '.cer';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function() {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }, 0);
+    }
+}
