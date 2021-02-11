@@ -365,7 +365,8 @@ article:nth-of-type(3) {
                     <label>Description:</label>
                     {{ destination.form.description }}
 
-                <input type="submit" value="Save" formTarget="{{ destination.update_url }}" id="updateDestinationButton" onclick="submitForm(event)">
+                    <input type="submit" value="Save" formTarget="{{ destination.update_url }}" id="updateDestinationButton" onclick="submitForm(event)">
+                    <input type="submit" value="Add New Destination" formMethod="GET" id="createNewDestination-{{ destination.unique_element_id }}" formtarget="{{ entity_template.new_destination.create_new_url }}" onclick="submitForm(event)">
                 </div>
             </form>
         </div>

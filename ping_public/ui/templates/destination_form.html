@@ -1,20 +1,34 @@
 {% if destination %}
-{{ destination.token_configuration }}
-<p>Everything else below here.. </p>
 <div class="destinationContainer">
     <h1 id="destinationConfiguration">Destination Configuration </h1>
     <div class="entityGrid">
-        <form>
-            <label>Destination Name:</label>
-            {{ destination.name }}
+        <form action="{{ destination.create_new_url }}" name="DESTINATION_NEW" id="{{ destination.unique_element_id }}" method="POST">
+                <div class="entityGrid">
+                    {% csrf_token %}
 
-            <label>Token Configuration:</label>
-            {{ destination.token_configuration }}
+                    <label>Destination Name:</label>
+                    {{ destination.form.name }}
+
+
+                    <label>Token Configuration:</label>
+                    {{ destination.form.token_configuration }}
+
+
+                    <label>Description:</label>
+                    {{ destination.form.description }}
+
+                    <input type="submit" value="Save" formMethod="POST" formTarget="{{ destination.create_new_url }}" id="updateDestinationButton" onclick="submitForm(event)">
+                    <input type="submit" value="Add New Destination" formMethod="GET" formtarget="{{ destination.create_new_url }}" onclick="submitForm(event)">
+                </div>
         </form>
 
     </div>
+
 </div>
 <div id="destinationConfigurationEnd"></div>
+
+
+
 {% else %}
 <p>No Destination received from view.</p>
 {% endif %}

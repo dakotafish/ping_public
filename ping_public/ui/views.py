@@ -25,21 +25,27 @@ class Meta:
 
     def __init__(self, model, model_instance, parent_model, parent_instance):
         self.model = model.upper()
-        self.model_instance = model_instance
-        self.model_instance_id = model_instance.id
+        if model_instance == 'NEW':
+            # if a model instance doesn't exist yet then the reverse() function will fail
+            # so we short circuit __init__() for NEW model instances
+            self.model_instance = 'NEW'
+            self.model_instance_id = 'NEW'
+        else:
+            self.model_instance = model_instance
+            self.model_instance_id = model_instance.id
+            self.update_url = reverse('Update', kwargs={
+                'role': 'sp',
+                'model': self.model,
+                'model_id': self.model_instance_id
+            })
+            self.delete_url = reverse('Delete', kwargs={
+                'role': 'sp',
+                'model': self.model,
+                'model_id': self.model_instance_id
+            })
         self.parent_model = parent_model
         self.parent_instance = parent_instance
         self.parent_instance_id = parent_instance.id
-        self.update_url = reverse('Update', kwargs={
-            'role': 'sp',
-            'model': self.model,
-            'model_id': self.model_instance_id
-        })
-        self.delete_url = reverse('Delete', kwargs={
-            'role': 'sp',
-            'model': self.model,
-            'model_id': self.model_instance_id
-        })
         self.create_new_url = reverse('CreateNew', kwargs={
             'role': 'sp',
             'model': self.model,
@@ -51,13 +57,22 @@ class Meta:
         self.unique_element_id = self.model + "_" + str(self.model_instance_id)
 
     def set_form(self):
-        forms = {
-            'ENTITY': EntityForm(instance=self.model_instance),
-            'CERTIFICATE': CertificateForm(),
-            'DESTINATION': DestinationForm(instance=self.model_instance),
-            'RELAYSTATE': RelayStateForm(instance=self.model_instance),
-            'ATTRIBUTE': AttributeForm(instance=self.model_instance),
-        }
+        if self.model_instance == 'NEW':
+            forms = {
+                'ENTITY': EntityForm(),
+                'CERTIFICATE': CertificateForm(),
+                'DESTINATION': DestinationForm(),
+                'RELAYSTATE': RelayStateForm(),
+                'ATTRIBUTE': AttributeForm(),
+            }
+        else:
+            forms = {
+                'ENTITY': EntityForm(instance=self.model_instance),
+                'CERTIFICATE': CertificateForm(),
+                'DESTINATION': DestinationForm(instance=self.model_instance),
+                'RELAYSTATE': RelayStateForm(instance=self.model_instance),
+                'ATTRIBUTE': AttributeForm(instance=self.model_instance),
+            }
         self.form = forms[self.model]
 
 
@@ -73,17 +88,21 @@ class EntityTemplate(Meta):
 
 
     def set_certificates(self):
-        # self.new_certificate is used in the template to create a new blank certificate form
-        self.new_certificate = Meta('CERTIFICATE', self.model_instance, 'ENTITY', self.model_instance)
+        self.new_certificate = Meta(model='CERTIFICATE', model_instance='NEW', parent_model='ENTITY',
+                                    parent_instance=self.model_instance)
         certificates = Certificate.objects.filter(entity__id=self.model_instance_id)
         for certificate in certificates:
-            cert_meta = Meta('CERTIFICATE', certificate, 'ENTITY', self.model_instance)
+            cert_meta = Meta(model='CERTIFICATE', model_instance=certificate, parent_model='ENTITY',
+                             parent_instance=self.model_instance)
             self.certificates.append(cert_meta)
 
     def set_destinations(self):
+        self.new_destination = Meta(model='DESTINATION', model_instance='NEW', parent_model='ENTITY',
+                                    parent_instance=self.model_instance)
         destinations = Destination.objects.filter(entity__id=self.model_instance_id)
         for destination in destinations:
-            destination_meta = DestinationTemplate('DESTINATION', destination, 'ENTITY', self.model_instance)
+            destination_meta = DestinationTemplate(model='DESTINATION', model_instance=destination,
+                                                   parent_model='ENTITY', parent_instance=self.model_instance)
             self.destinations.append(destination_meta)
 
 
@@ -97,15 +116,21 @@ class DestinationTemplate(Meta):
         self.set_attributes()
 
     def set_relay_states(self):
+        self.new_relay_state = Meta(model='RELAYSTATE', model_instance='NEW', parent_model='DESTINATION',
+                                    parent_instance=self.model_instance)
         relay_states = RelayState.objects.filter(destination__id=self.model_instance_id)
         for relay_state in relay_states:
-            relay_state_meta = Meta('RELAYSTATE', relay_state, 'DESTINATION', self.model_instance)
+            relay_state_meta = Meta(model='RELAYSTATE', model_instance=relay_state, parent_model='DESTINATION',
+                                    parent_instance=self.model_instance)
             self.relay_states.append(relay_state_meta)
 
     def set_attributes(self):
+        self.new_attribute = Meta(model='ATTRIBUTE', model_instance='NEW', parent_model='DESTINATION',
+                                  parent_instance=self.model_instance)
         attributes = Attribute.objects.filter(destination__id=self.model_instance_id)
         for attribute in attributes:
-            attribute_meta = Meta('ATTRIBUTE', attribute, 'DESTINATION', self.model_instance)
+            attribute_meta = Meta(model='ATTRIBUTE', model_instance=attribute, parent_model='DESTINATION',
+                                  parent_instance=self.model_instance)
             self.attributes.append(attribute_meta)
 
 
@@ -194,29 +219,39 @@ class CreateNew(generic.DetailView):
         'DESTINATION': {
             'FORM': DestinationForm(),
             #'MODEL_INSTANCE': Destination(name='Creating New'),
-            'TEMPLATE': 'destination-form.html'
+            'TEMPLATE': 'destination_form.html'
         },
         'RELAYSTATE': {
             'FORM': RelayStateForm(),
             'MODEL_INSTANCE': RelayState(),
-            'TEMPLATE': 'relaystate-form.html'
+            'TEMPLATE': 'relaystate_form.html'
         },
         'ATTRIBUTE': {
             'FORM': AttributeForm(),
-            'TEMPLATE': 'attribute-form.html'
+            'TEMPLATE': 'attribute_form.html'
         },
     }
 
     def get(self, request, *args, **kwargs):
         model = kwargs['model'].upper()
-        parent_instance = kwargs['parent_instance']
-        form = set_form_initial(form=self.model_map[model]['FORM'],
-                                model=model,
-                                model_instance=self.model_map[model]['MODEL_INSTANCE'],
-                                parent_instance=parent_instance)
-        return render(request=request,
-                      template_name=self.model_map[model]['TEMPLATE'],
-                      context={'form': form})
+        parent_instance_id = kwargs['parent_instance']
+        form = self.fetch_new_form(model, parent_instance_id)
+        template = self.model_map[model]['TEMPLATE']
+        context_name = model.lower()
+        response = {
+            'new_form': render_to_string(template, {context_name: form}, request=request),
+        }
+        return JsonResponse(response)
+
+
+    def fetch_new_form(self, model, parent_instance_id):
+        parent_instance = None
+        if model == 'DESTINATION':
+            parent_instance = Entity.objects.get(pk=parent_instance_id)
+            form = Meta(model=model, model_instance='NEW', parent_model='ENTITY',
+                                       parent_instance=parent_instance)
+            return form
+
 
     def post(self, request, *args, **kwargs):
         model = kwargs['model']
@@ -237,6 +272,8 @@ class CreateNew(generic.DetailView):
             entity = Entity.objects.get(pk=parent_instance)
             form = DestinationForm(post_data)
             form.instance.entity = entity
+            form.save()
+            return {'message': 'SUCCESS'}
         elif model_to_update == 'ATTRIBUTE':
             destination = Destination.objects.get(pk=parent_instance)
             form = AttributeForm(post_data)
@@ -275,21 +312,6 @@ class CreateNew(generic.DetailView):
                 }
                 print(status)
                 return status
-
-
-        # if form.is_valid():
-        #     new_model_instance = form.save()
-        #     new_update_url = reverse('Update', kwargs={
-        #         'role': 'sp',
-        #         'model': model_to_update,
-        #         'model_id': new_model_instance.id
-        #     })
-        #     status = {
-        #         'MESSAGE': 'SUCCESS',
-        #         'UPDATE_URL': new_update_url,
-        #     }
-        #     print(status)
-        #     return status
         else:
             # TODO - Need a better method of passing status messages
             # To produce one of the validation errors when testing just remove "required=False" from parent_instance on the entity form

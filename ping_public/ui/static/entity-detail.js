@@ -55,6 +55,22 @@ class Form {
         }
     };
 
+    async fetchNewForm(method='GET') {
+        let response = await fetch(this.targetUrl,
+            {
+                method: method,
+                headers: {'X-CSRFToken': csrftoken}
+            });
+        if (response.ok) {
+            this.responseBody = await response.json();
+            this.success = true;
+            this.insertNewForm()
+        } else {
+            this.responseBody = await response.json();
+            this.success = false;
+        }
+    };
+
     removeTimedSpan() {
         setTimeout(() => {
             document.getElementById("timedSpan").remove();
@@ -76,6 +92,11 @@ class Form {
         // pass
         // this method can be implemented on child classes when necessary
     };
+
+    insertNewForm() {
+        // pass
+        // each form will be inserted differently so this will be implemented on child classes
+    }
 }
 
 class StandardForm extends Form {
@@ -126,6 +147,21 @@ class CertificateForm extends Form {
 //    };
 }
 
+class DestinationForm extends Form {
+    constructor(eventTarget, id) {
+        super(eventTarget);
+        this.submittedForm = eventTarget.target.parentElement.parentElement;
+    }
+
+    insertNewForm() {
+        // insert the new destination form at the end of the page
+        let lastElement = document.getElementById('entityContainer').lastElementChild;
+        let newForm = this.responseBody['new_form'];
+        lastElement.insertAdjacentHTML('afterend', newForm);
+        let newDestinationForm = document.getElementById('DESTINATION_NEW');
+        newDestinationForm.scrollIntoView();
+    }
+}
 
 function submitForm(event) {
     event.preventDefault();
@@ -143,6 +179,7 @@ function submitForm(event) {
         model: urlSegments[4],
         modelId: urlSegments[5],
     };
+    console.log(eventTarget);
 
     let action = eventTarget.action;
     let model = eventTarget.model;
@@ -162,8 +199,19 @@ function submitForm(event) {
         }
     } else if (model == 'DESTINATION') {
         if (action == UPDATE) {
-            let form = new StandardForm(eventTarget);
+            //let form = new StandardForm(eventTarget);
+            let form = new DestinationForm(eventTarget);
             form.submitForm(action);
+        } else if (action == CREATENEW) {
+            let form = new DestinationForm(eventTarget);
+            let method = event.target.formMethod;
+            if (method.toUpperCase() == 'GET') {
+                let newDestinationForm = form.fetchNewForm();
+                console.log('New Destination Form:');
+                console.log(newDestinationForm);
+            } else {
+                form.submitForm(method=method, action=action);
+            }
         }
     } else if (model ==  'RELAYSTATE') {
         if (action == UPDATE) {
@@ -225,4 +273,117 @@ function download(data, filename) {
             window.URL.revokeObjectURL(url);
         }, 0);
     }
+}
+
+
+
+function updateVisibleSectionIndicators(e) {
+    let viewHeight = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+    let viewTop = e.target.scrollTop;
+    let viewBottom = viewHeight + viewTop;
+
+    let entityConfig = document.getElementById("entityConfiguration");
+    let entityConfigEnd = document.getElementById("entityConfigurationEnd");
+    let entityNav = document.getElementById("entityNav");
+
+    let certificateConfig = document.getElementById("certificateConfiguration");
+    let certificateConfigEnd = document.getElementById("certificateConfigurationEnd");
+    let certificateNav = document.getElementById("certificateNav");
+
+    let destinationConfig = document.getElementById("destinationConfiguration");
+    let destinationConfigEnd = document.getElementById("destinationConfigurationEnd");
+    let destinationNav = document.getElementById("destinationNav");
+
+    let relayStateConfig = document.getElementById("relayStateConfiguration");
+    let relayStateConfigEnd = document.getElementById("relayStateConfigurationEnd");
+    let relayStateNav = document.getElementById("relayStateNav");
+
+    let attributeConfig = document.getElementById("attributeConfiguration");
+    let attributeConfigEnd = document.getElementById("attributeConfigurationEnd");
+    let attributeNav = document.getElementById("attributeNav");
+
+    let configList = [entityConfig, certificateConfig, destinationConfig, relayStateConfig, attributeConfig];
+    let configEndList = [entityConfigEnd, certificateConfigEnd, destinationConfigEnd, relayStateConfigEnd, attributeConfigEnd]
+    let navList = [entityNav, certificateNav, destinationNav, relayStateNav, attributeNav];
+
+    for (let i = 0; i < configList.length; i++) {
+        let temp = isElementInView(viewTop, viewBottom, configList[i], configEndList[i], navList[i]);
+        // if (temp) {
+        //     break;
+        // }
+    }
+
+    // let relayStateInView = isElementInView(viewTop, viewBottom, relayStateConfig, relayStateNav);
+    // if (relayStateInView) {
+    //     console.log('Your RelayState is showingggg!');
+    // }
+
+}
+
+function isElementInView(viewTop, viewBottom, element, elementEnd, relatedNavElement) {
+    /*
+    This needs a few improvements..
+    #1 - I need the location for the bottom of each element..
+            right now the moment the header hits the top it un-highlights
+    #2 - Only highlight an element if
+            A: The top and bottom are within view
+            B: Or the element is currently taking up over ~half of the viewheight
+            This fixes two problems..
+                The first is that a nav element is highlighted when only a small part of the element is showing
+                The second is that an element that is larger than the viewport (such as relaystates or attributes)
+                    would never be highlighted since they would extend past the top and bottom of the screen.
+
+    ALT Solution #2:
+        Take the average of the top and bottom of an element (ie the middle)
+            and only highlight the element if the average/middle is within the viewport?
+    */
+    console.log('Top');
+    let elementTop = element.offsetTop;
+    let elementBottom = elementEnd.offsetTop;
+    let elementCenter = ((elementTop + elementBottom) / 2)
+
+    if (elementCenter <= viewBottom && elementCenter >= viewTop) {
+        relatedNavElement.style.background = "#C4DBFA";
+        return true
+    } else {
+        relatedNavElement.style.background = "inherit";
+        return false;
+    }
+
+    // if (elementTop <= viewBottom && elementTop >= viewTop) {
+    //     relatedNavElement.style.background = "#C4DBFA";
+    //     return true
+    // } else {
+    //     relatedNavElement.style.background = "inherit";
+    //     return false;
+    // }
+}
+
+function pageScroll(e) {
+    // console.log("Page Scroll event.");
+    // console.log("ScrollTop:");
+    // console.log(e.target.scrollTop);
+    // console.log("ScrollBottom:");
+    // console.log(e.target.scrollBottom);
+    let currentPosition = e.target.scrollTop;
+
+    // need to figure out where the bottom of the window is..
+
+
+    let entityConfigY = document.getElementById("entityConfiguration").offsetTop;
+    let certificateConfigY = document.getElementById("certificateConfiguration").offsetTop;
+    let destinationConfigY = document.getElementById("destinationConfiguration").offsetTop;
+    let relayStateConfigY = document.getElementById("relayStateConfiguration").offsetTop;
+    let attributeConfigY = document.getElementById("attributeConfiguration").offsetTop;
+
+    let relayStateConfigInView = false;
+    console.log('relaystate minus current:')
+    console.log(relayStateConfigY - currentPosition);
+
+    if (relayStateConfigY - currentPosition > 0) {
+        console.log("RelayState is in view!");
+    }
+
+    let relayStateRelativePosition = relayStateConfigY - currentPosition;
+
 }
