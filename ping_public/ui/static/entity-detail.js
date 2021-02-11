@@ -30,11 +30,15 @@ class Form {
 
     async deleteInstance(method='DELETE', action) {
 
-        let row = document.getElementById(this.uniqueElementId);
-        let message = `Are you sure you want to delete this item?\n\t
-                        CN = ${row.children.common_name.innerText}
-                        Issue Date = ${row.children.issue_date.innerText}
-                        Exp Date = ${row.children.expiration_date.innerText}`
+//        let row = document.getElementById(this.uniqueElementId);
+//        let message = `Are you sure you want to delete this item?\n\t
+//                        CN = ${row.children.common_name.innerText}
+//                        Issue Date = ${row.children.issue_date.innerText}
+//                        Exp Date = ${row.children.expiration_date.innerText}`
+        let message = this.getCustomDeleteMessage()
+        if (message == null) {
+            message = 'Are you sure you want to delete this item?'
+        }
         let userConfirmation = confirm(message);
 
         if (userConfirmation == true) {
@@ -97,6 +101,10 @@ class Form {
         // pass
         // each form will be inserted differently so this will be implemented on child classes
     }
+
+    getCustomDeleteMessage() {
+        // pass
+    }
 }
 
 class StandardForm extends Form {
@@ -134,6 +142,15 @@ class CertificateForm extends Form {
         }
     }
 
+    getCustomDeleteMessage() {
+        let row = document.getElementById(this.uniqueElementId);
+        let message = `Are you sure you want to delete this item?\n\t
+                        CN = ${row.children.common_name.innerText}
+                        Issue Date = ${row.children.issue_date.innerText}
+                        Exp Date = ${row.children.expiration_date.innerText}`
+        return message
+    }
+
 //    displayStatusMessage(messageLocation='afterend') {
 //        if (this.success) {
 //            //let message = this.responseBody.MESSAGE
@@ -160,6 +177,21 @@ class DestinationForm extends Form {
         lastElement.insertAdjacentHTML('afterend', newForm);
         let newDestinationForm = document.getElementById('DESTINATION_NEW');
         newDestinationForm.scrollIntoView();
+    }
+
+    getCustomDeleteMessage() {
+        let form = this.submittedForm
+        let fdata = new FormData(form);
+        let name = ''
+        for (var pair of fdata.entries()) {
+            console.log(pair[0]+ ', ' + pair[1]);
+            if (pair[0] == 'name'){
+                name = pair[1];
+            }
+        }
+        let message = `Are you sure you want to delete this item?\n\t
+                        Destination Name = ${name}`
+        return message;
     }
 }
 
@@ -212,6 +244,9 @@ function submitForm(event) {
             } else {
                 form.submitForm(method=method, action=action);
             }
+        } else if (action == DELETE) {
+            let form = new DestinationForm(eventTarget);
+            form.deleteInstance(action)
         }
     } else if (model ==  'RELAYSTATE') {
         if (action == UPDATE) {

@@ -248,8 +248,11 @@ class CreateNew(generic.DetailView):
         parent_instance = None
         if model == 'DESTINATION':
             parent_instance = Entity.objects.get(pk=parent_instance_id)
-            form = Meta(model=model, model_instance='NEW', parent_model='ENTITY',
-                                       parent_instance=parent_instance)
+            form = Meta(model=model, model_instance='NEW', parent_model='ENTITY',parent_instance=parent_instance)
+            return form
+        elif model == 'RELAYSTATE' or model == 'ATTRIBUTE':
+            parent_instance = Destination.objects.get(pk=parent_instance_id)
+            form = Meta(model=model, model_instance='NEW', parent_model='DESTINATION', parent_instance=parent_instance)
             return form
 
 
