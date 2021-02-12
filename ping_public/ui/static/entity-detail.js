@@ -29,19 +29,18 @@ class Form {
     };
 
     async deleteInstance(method='DELETE', action) {
-
-//        let row = document.getElementById(this.uniqueElementId);
-//        let message = `Are you sure you want to delete this item?\n\t
-//                        CN = ${row.children.common_name.innerText}
-//                        Issue Date = ${row.children.issue_date.innerText}
-//                        Exp Date = ${row.children.expiration_date.innerText}`
         let message = this.getCustomDeleteMessage()
         if (message == null) {
             message = 'Are you sure you want to delete this item?'
         }
         let userConfirmation = confirm(message);
 
-        if (userConfirmation == true) {
+        if (userConfirmation == true && this.modelId.includes('NEW')) {
+            this.success = true;
+            this.responseBody = {'message': `Removing ${this.model}`};
+            this.displayStatusMessage();
+            this.continueProcessing('DELETE');
+        } else if (userConfirmation == true) {
             let response = await fetch(this.targetUrl,
                 {
                     method: method,
@@ -150,18 +149,6 @@ class CertificateForm extends Form {
                         Exp Date = ${row.children.expiration_date.innerText}`
         return message
     }
-
-//    displayStatusMessage(messageLocation='afterend') {
-//        if (this.success) {
-//            //let message = this.responseBody.MESSAGE
-//            let message = this.responseText
-//            let html = `<span id="timedSpan" style="color: green"> ${message} </span`;
-//        } else {
-//            let html = `<span id="timedSpan" style="color: red"> ${message} </span`;
-//        }
-//        this.submitButton.insertAdjacentHTML(messageLocation, html);
-//        setTimeout( this.removeTimedSpan(), 3000);
-//    };
 }
 
 class DestinationForm extends Form {
@@ -176,24 +163,99 @@ class DestinationForm extends Form {
         let newForm = this.responseBody['new_form'];
         lastElement.insertAdjacentHTML('afterend', newForm);
         let newDestinationForm = document.getElementById('DESTINATION_NEW');
-        newDestinationForm.scrollIntoView();
+        newDestinationForm.parentElement.scrollIntoView();
     }
 
     getCustomDeleteMessage() {
         let form = this.submittedForm
-        let fdata = new FormData(form);
-        let name = ''
-        for (var pair of fdata.entries()) {
-            console.log(pair[0]+ ', ' + pair[1]);
-            if (pair[0] == 'name'){
-                name = pair[1];
-            }
+        let formData = new FormData(form);
+        let name = formData.get('name');
+        if (name == '' && this.modelId.includes('NEW')) {
+            name = 'New Destination';
         }
         let message = `Are you sure you want to delete this item?\n\t
                         Destination Name = ${name}`
         return message;
     }
+
+    continueProcessing(action) {
+        if (action == 'DELETE') {
+            let destinationForm = document.getElementById(this.uniqueElementId);
+            let destinationContainer = destinationForm.parentElement;
+            destinationContainer.remove();
+        } else if (action == 'CREATE-NEW') {
+            if ('unique_element_id' in this.responseBody) {
+                let destinationForm = document.getElementById('DESTINATION_NEW');
+                destinationForm.id = this.responseBody.unique_element_id;
+            }
+            if ('update_url' in this.responseBody) {
+                let saveButton = document.getElementById('NEW_DESTINATION_SAVE_BUTTON');
+                saveButton.formTarget = this.responseBody.update_url;
+                saveButton.id = '';
+            }
+            if ('delete_url' in this.responseBody) {
+                let deleteButton = document.getElementById('NEW_DESTINATION_DELETE_BUTTON');
+                deleteButton.formTarget = this.responseBody.delete_url;
+                deleteButton.id = '';
+            }
+            // need to add create-new urls for the add new relaystate / attribute buttons.
+        }
+    }
 }
+
+
+class RelayStateForm extends Form {
+    constructor(eventTarget, id) {
+        super(eventTarget);
+        this.submittedForm = eventTarget.target.parentElement;
+    }
+
+    insertNewForm() {
+        let container = this.submitButton.parentElement;
+        console.log(container);
+        let newForm = this.responseBody['new_form'];
+        console.log(newForm);
+        let formCount = container.children.length;
+        let lastForm = container.children[formCount - 2];
+        lastForm.insertAdjacentHTML('afterend', newForm);
+    }
+
+    getCustomDeleteMessage() {
+//        let form = this.submittedForm
+//        let formData = new FormData(form);
+//        let name = formData.get('name');
+//        if (name == '' && this.modelId.includes('NEW')) {
+//            name = 'New Destination';
+//        }
+//        let message = `Are you sure you want to delete this item?\n\t
+//                        Destination Name = ${name}`
+//        return message;
+    }
+
+    continueProcessing(action) {
+        if (action == 'DELETE') {
+            let destinationForm = document.getElementById(this.uniqueElementId);
+            let destinationContainer = destinationForm.parentElement;
+            destinationContainer.remove();
+        } else if (action == 'CREATE-NEW') {
+            if ('unique_element_id' in this.responseBody) {
+                let destinationForm = document.getElementById('DESTINATION_NEW');
+                destinationForm.id = this.responseBody.unique_element_id;
+            }
+            if ('update_url' in this.responseBody) {
+                let saveButton = document.getElementById('NEW_DESTINATION_SAVE_BUTTON');
+                saveButton.formTarget = this.responseBody.update_url;
+                saveButton.id = '';
+            }
+            if ('delete_url' in this.responseBody) {
+                let deleteButton = document.getElementById('NEW_DESTINATION_DELETE_BUTTON');
+                deleteButton.formTarget = this.responseBody.delete_url;
+                deleteButton.id = '';
+            }
+        }
+    }
+}
+
 
 function submitForm(event) {
     event.preventDefault();
@@ -211,7 +273,6 @@ function submitForm(event) {
         model: urlSegments[4],
         modelId: urlSegments[5],
     };
-    console.log(eventTarget);
 
     let action = eventTarget.action;
     let model = eventTarget.model;
@@ -219,12 +280,12 @@ function submitForm(event) {
     if (model == 'ENTITY') {
         if (action == UPDATE) {
             let form = new StandardForm(eventTarget);
-            form.submitForm(action);
+            form.submitForm(method='POST', action=action);
         }
     } else if (model == 'CERTIFICATE') {
         if (action == CREATENEW) {
             let form = new CertificateForm(eventTarget);
-            form.submitForm(action);
+            form.submitForm(method='POST', action=action);
         } else if (action == DELETE) {
             let form = new CertificateForm(eventTarget);
             form.deleteInstance(action);
@@ -233,14 +294,12 @@ function submitForm(event) {
         if (action == UPDATE) {
             //let form = new StandardForm(eventTarget);
             let form = new DestinationForm(eventTarget);
-            form.submitForm(action);
+            form.submitForm(method='POST', action=action);
         } else if (action == CREATENEW) {
             let form = new DestinationForm(eventTarget);
             let method = event.target.formMethod;
             if (method.toUpperCase() == 'GET') {
                 let newDestinationForm = form.fetchNewForm();
-                console.log('New Destination Form:');
-                console.log(newDestinationForm);
             } else {
                 form.submitForm(method=method, action=action);
             }
@@ -251,12 +310,20 @@ function submitForm(event) {
     } else if (model ==  'RELAYSTATE') {
         if (action == UPDATE) {
             let form = new StandardForm(eventTarget);
-            form.submitForm(action);
+            form.submitForm(method='POST', action=action);
+        } else if (action == CREATENEW) {
+            let form = new RelayStateForm(eventTarget);
+            let method = event.target.formMethod;
+            if (method.toUpperCase() == 'GET') {
+                let newDestinationForm = form.fetchNewForm();
+            } else {
+                form.submitForm(method=method, action=action);
+            }
         }
     } else if (model == 'ATTRIBUTE') {
         if (action == UPDATE) {
             let form = new StandardForm(eventTarget);
-            form.submitForm(action);
+            form.submitForm(method='POST', action=action);
         }
     }
 }
@@ -372,7 +439,6 @@ function isElementInView(viewTop, viewBottom, element, elementEnd, relatedNavEle
         Take the average of the top and bottom of an element (ie the middle)
             and only highlight the element if the average/middle is within the viewport?
     */
-    console.log('Top');
     let elementTop = element.offsetTop;
     let elementBottom = elementEnd.offsetTop;
     let elementCenter = ((elementTop + elementBottom) / 2)

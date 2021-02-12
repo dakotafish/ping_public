@@ -28,8 +28,8 @@ class Meta:
         if model_instance == 'NEW':
             # if a model instance doesn't exist yet then the reverse() function will fail
             # so we short circuit __init__() for NEW model instances
-            self.model_instance = 'NEW'
-            self.model_instance_id = 'NEW'
+            self.model_instance = model_instance
+            self.model_instance_id = model_instance
         else:
             self.model_instance = model_instance
             self.model_instance_id = model_instance.id
@@ -52,26 +52,27 @@ class Meta:
             'parent_instance': self.parent_instance_id
         })
         self.template = self.templates[self.model]
+        self.unique_element_id = self.model + "_" + str(self.model_instance_id)
         self.form = None
         self.set_form()
-        self.unique_element_id = self.model + "_" + str(self.model_instance_id)
 
     def set_form(self):
+        unique_auto_id = self.unique_element_id + '_%s'
         if self.model_instance == 'NEW':
             forms = {
-                'ENTITY': EntityForm(),
+                'ENTITY': EntityForm(auto_id=unique_auto_id),
                 'CERTIFICATE': CertificateForm(),
-                'DESTINATION': DestinationForm(),
-                'RELAYSTATE': RelayStateForm(),
-                'ATTRIBUTE': AttributeForm(),
+                'DESTINATION': DestinationForm(auto_id=unique_auto_id),
+                'RELAYSTATE': RelayStateForm(auto_id=unique_auto_id),
+                'ATTRIBUTE': AttributeForm(auto_id=unique_auto_id),
             }
         else:
             forms = {
-                'ENTITY': EntityForm(instance=self.model_instance),
+                'ENTITY': EntityForm(instance=self.model_instance, auto_id=unique_auto_id),
                 'CERTIFICATE': CertificateForm(),
-                'DESTINATION': DestinationForm(instance=self.model_instance),
-                'RELAYSTATE': RelayStateForm(instance=self.model_instance),
-                'ATTRIBUTE': AttributeForm(instance=self.model_instance),
+                'DESTINATION': DestinationForm(instance=self.model_instance, auto_id=unique_auto_id),
+                'RELAYSTATE': RelayStateForm(instance=self.model_instance, auto_id=unique_auto_id),
+                'ATTRIBUTE': AttributeForm(instance=self.model_instance, auto_id=unique_auto_id),
             }
         self.form = forms[self.model]
 
@@ -116,6 +117,8 @@ class DestinationTemplate(Meta):
         self.set_attributes()
 
     def set_relay_states(self):
+        print(self.model_instance)
+        print(self.model_instance_id)
         self.new_relay_state = Meta(model='RELAYSTATE', model_instance='NEW', parent_model='DESTINATION',
                                     parent_instance=self.model_instance)
         relay_states = RelayState.objects.filter(destination__id=self.model_instance_id)
@@ -177,7 +180,7 @@ class Update(generic.DetailView):
             model_instance = RelayState.objects.get(pk=model_instance_id)
             form = RelayStateForm(post_data, instance=model_instance)
         if form.is_valid():
-            form.save()
+            new_instance = form.save()
             return self.SUCCESS
         else:
             # TODO - Need a better method of passing status messages
@@ -204,7 +207,12 @@ class Delete(generic.DetailView):
     def process_delete(self, model, model_instance_id):
         model = model.upper()
         if model == 'CERTIFICATE':
-            model_instance = Certificate.objects.get(pk=model_instance_id).delete()
+            model_instance = Certificate.objects.get(pk=model_instance_id)
+            model_instance.delete()
+            return self.SUCCESS
+        elif model == 'DESTINATION':
+            model_instance = Destination.objects.get(pk=model_instance_id)
+            model_instance.delete()
             return self.SUCCESS
         else:
             error = "Failed to delete object with pk=" + str(model_instance_id)
@@ -249,6 +257,7 @@ class CreateNew(generic.DetailView):
         if model == 'DESTINATION':
             parent_instance = Entity.objects.get(pk=parent_instance_id)
             form = Meta(model=model, model_instance='NEW', parent_model='ENTITY',parent_instance=parent_instance)
+            #form = DestinationTemplate(model=model, model_instance='NEW', parent_model='ENTITY', parent_instance=parent_instance)
             return form
         elif model == 'RELAYSTATE' or model == 'ATTRIBUTE':
             parent_instance = Destination.objects.get(pk=parent_instance_id)
@@ -275,8 +284,18 @@ class CreateNew(generic.DetailView):
             entity = Entity.objects.get(pk=parent_instance)
             form = DestinationForm(post_data)
             form.instance.entity = entity
-            form.save()
-            return {'message': 'SUCCESS'}
+            new_instance = form.save()
+            update_url = reverse('Update', kwargs={'role':'sp', 'model': model_to_update,
+                                                   'model_id': str(new_instance.id)})
+            delete_url = reverse('Delete', kwargs={'role':'sp', 'model': model_to_update,
+                                                   'model_id': str(new_instance.id)})
+            # relaystate need to return relaystate and attribute create new urls here
+            return {
+                'message': 'SUCCESS',
+                'unique_element_id': model_to_update + "_" + str(new_instance.id),
+                'update_url': str(update_url),
+                'delete_url': str(delete_url)
+            }
         elif model_to_update == 'ATTRIBUTE':
             destination = Destination.objects.get(pk=parent_instance)
             form = AttributeForm(post_data)

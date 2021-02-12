@@ -1,7 +1,7 @@
 {% if destination %}
 <div class="destinationContainer">
     <h1 id="destinationConfiguration">Destination Configuration </h1>
-    <div class="entityGrid">
+
         <form action="{{ destination.create_new_url }}" name="DESTINATION_NEW" id="{{ destination.unique_element_id }}" method="POST">
                 <div class="entityGrid">
                     {% csrf_token %}
@@ -17,12 +17,61 @@
                     <label>Description:</label>
                     {{ destination.form.description }}
 
-                    <input type="submit" value="Save" formMethod="POST" formTarget="{{ destination.create_new_url }}" id="updateDestinationButton" onclick="submitForm(event)">
+                    <input type="submit" value="Save" formMethod="POST" formTarget="{{ destination.create_new_url }}" id="NEW_DESTINATION_SAVE_BUTTON" onclick="submitForm(event)">
                     <input type="submit" value="Add New Destination" formMethod="GET" formtarget="{{ destination.create_new_url }}" onclick="submitForm(event)">
+                    <input type="submit" value="Delete" formMethod="DELETE" formTarget="/ui/sp/delete/DESTINATION/NEW" id="NEW_DESTINATION_DELETE_BUTTON" onclick="submitForm(event)">
                 </div>
         </form>
 
-    </div>
+
+
+
+        <div class="relaystateContainer">
+            <div class="certificateContainer">
+                <h1 id="relayStateConfiguration" class="certificateHeading">RelayStates</h1>
+
+                <input class="searchField" type="text" id="relayStateFilter" name="relayStateFilter" placeholder="Filter..">
+
+
+                <p>There are no Relay States for this Destination yet.</p>
+                <p>Save the Destination and then you can start adding Relay States.</p>
+
+
+
+
+                <input type="submit" value="Add New RelayState" id="addRelayStateButton" onclick="someFunction()">
+
+            </div>
+        </div>
+        <div id="relayStateConfigurationEnd"></div>
+
+
+
+
+
+
+
+
+        <div class="relaystateContainer">
+            <div class="certificateContainer">
+                <h1 id="attributeConfiguration" class="certificateHeading">Attributes</h1>
+
+                <p>There are no Attributes for this Destination yet.</p>
+                <p>Save the Destination and then you can start adding Attributes.</p>
+
+                <input type="submit" value="Add New Attribute" id="addRelayStateButton" onclick="someFunction()" formTarget="{{ attribute.create_new_url }}">
+
+
+
+            </div>
+        </div>
+        <div id="attributeConfigurationEnd"></div>
+
+
+        </div>
+
+
+
 
 </div>
 <div id="destinationConfigurationEnd"></div>
