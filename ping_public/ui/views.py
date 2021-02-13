@@ -289,7 +289,6 @@ class CreateNew(generic.DetailView):
                                                    'model_id': str(new_instance.id)})
             delete_url = reverse('Delete', kwargs={'role':'sp', 'model': model_to_update,
                                                    'model_id': str(new_instance.id)})
-            # relaystate need to return relaystate and attribute create new urls here
             return {
                 'message': 'SUCCESS',
                 'unique_element_id': model_to_update + "_" + str(new_instance.id),
@@ -300,10 +299,32 @@ class CreateNew(generic.DetailView):
             destination = Destination.objects.get(pk=parent_instance)
             form = AttributeForm(post_data)
             form.instance.destination = destination
+            new_instance = form.save()
+            update_url = reverse('Update', kwargs={'role':'sp', 'model': model_to_update,
+                                                   'model_id': str(new_instance.id)})
+            delete_url = reverse('Delete', kwargs={'role':'sp', 'model': model_to_update,
+                                                   'model_id': str(new_instance.id)})
+            return {
+                'message': 'SUCCESS',
+                'unique_element_id': model_to_update + "_" + str(new_instance.id),
+                'update_url': str(update_url),
+                'delete_url': str(delete_url)
+            }
         elif model_to_update == 'RELAYSTATE':
             destination = Destination.objects.get(pk=parent_instance)
             form = RelayStateForm(post_data)
             form.instance.destination = destination
+            new_instance = form.save()
+            update_url = reverse('Update', kwargs={'role':'sp', 'model': model_to_update,
+                                                   'model_id': str(new_instance.id)})
+            delete_url = reverse('Delete', kwargs={'role':'sp', 'model': model_to_update,
+                                                   'model_id': str(new_instance.id)})
+            return {
+                'message': 'SUCCESS',
+                'unique_element_id': model_to_update + "_" + str(new_instance.id),
+                'update_url': str(update_url),
+                'delete_url': str(delete_url)
+            }
         elif model_to_update == 'CERTIFICATE':
             form = CertificateForm(post_data)
             if form['certificate_text'].value():

@@ -207,7 +207,7 @@ class DestinationForm extends Form {
 class RelayStateForm extends Form {
     constructor(eventTarget, id) {
         super(eventTarget);
-        this.submittedForm = eventTarget.target.parentElement;
+        this.submittedForm = eventTarget.target.parentElement.parentElement;
     }
 
     insertNewForm() {
@@ -221,15 +221,15 @@ class RelayStateForm extends Form {
     }
 
     getCustomDeleteMessage() {
-//        let form = this.submittedForm
-//        let formData = new FormData(form);
-//        let name = formData.get('name');
-//        if (name == '' && this.modelId.includes('NEW')) {
-//            name = 'New Destination';
-//        }
-//        let message = `Are you sure you want to delete this item?\n\t
-//                        Destination Name = ${name}`
-//        return message;
+        let form = this.submittedForm;
+        let formData = this.submittedForm;
+        let dataStore = formData.get('data_store')
+        if (dataStore == '' && this.modelId.includes('NEW')) {
+            dataStore = 'Data Store not selected yet.'
+        }
+        let message = `Are you sure you want to delete this item?\n\t
+                        Data Store = ${dataStore}`
+        return message;
     }
 
     continueProcessing(action) {
@@ -239,11 +239,11 @@ class RelayStateForm extends Form {
             destinationContainer.remove();
         } else if (action == 'CREATE-NEW') {
             if ('unique_element_id' in this.responseBody) {
-                let destinationForm = document.getElementById('DESTINATION_NEW');
-                destinationForm.id = this.responseBody.unique_element_id;
+                let relayStateForm = document.getElementById('RELAYSTATE_NEW');
+                relayStateForm.id = this.responseBody.unique_element_id;
             }
             if ('update_url' in this.responseBody) {
-                let saveButton = document.getElementById('NEW_DESTINATION_SAVE_BUTTON');
+                let saveButton = document.getElementById('NEW_RELAYSTATE_SAVE_BUTTON');
                 saveButton.formTarget = this.responseBody.update_url;
                 saveButton.id = '';
             }
@@ -305,7 +305,7 @@ function submitForm(event) {
             }
         } else if (action == DELETE) {
             let form = new DestinationForm(eventTarget);
-            form.deleteInstance(action)
+            form.deleteInstance(action);
         }
     } else if (model ==  'RELAYSTATE') {
         if (action == UPDATE) {
@@ -319,6 +319,9 @@ function submitForm(event) {
             } else {
                 form.submitForm(method=method, action=action);
             }
+        } else if (action == DELETE) {
+            let form = new DestinationForm(eventTarget);
+            form.deleteInstance(action);
         }
     } else if (model == 'ATTRIBUTE') {
         if (action == UPDATE) {

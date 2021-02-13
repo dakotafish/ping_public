@@ -408,7 +408,8 @@ article:nth-of-type(3) {
                         </div>
 
                         <input type="submit" value="SAVE" onclick="submitForm(event)" formTarget="{{ relay_state.update_url }}">
-                        <input type="submit" value="DELETE">
+                        <input type="submit" value="DELETE" formMethod="DELETE" formTarget="{{ relay_state.delete_url }}" onclick="submitForm(event)">
+
 
                     </div>
                     <div class="urlPattern relaystateField">
