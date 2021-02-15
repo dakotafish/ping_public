@@ -212,9 +212,7 @@ class RelayStateForm extends Form {
 
     insertNewForm() {
         let container = this.submitButton.parentElement;
-        console.log(container);
         let newForm = this.responseBody['new_form'];
-        console.log(newForm);
         let formCount = container.children.length;
         let lastForm = container.children[formCount - 2];
         lastForm.insertAdjacentHTML('afterend', newForm);
@@ -222,21 +220,18 @@ class RelayStateForm extends Form {
 
     getCustomDeleteMessage() {
         let form = this.submittedForm;
-        let formData = this.submittedForm;
-        let dataStore = formData.get('data_store')
-        if (dataStore == '' && this.modelId.includes('NEW')) {
-            dataStore = 'Data Store not selected yet.'
-        }
+        let formData = new FormData(form);
+        let url = formData.get('url_pattern');
         let message = `Are you sure you want to delete this item?\n\t
-                        Data Store = ${dataStore}`
+                        URL Pattern = ${url}`
         return message;
     }
 
     continueProcessing(action) {
         if (action == 'DELETE') {
             let destinationForm = document.getElementById(this.uniqueElementId);
-            let destinationContainer = destinationForm.parentElement;
-            destinationContainer.remove();
+            //let destinationContainer = destinationForm.parentElement;
+            destinationForm.remove();
         } else if (action == 'CREATE-NEW') {
             if ('unique_element_id' in this.responseBody) {
                 let relayStateForm = document.getElementById('RELAYSTATE_NEW');
@@ -248,7 +243,53 @@ class RelayStateForm extends Form {
                 saveButton.id = '';
             }
             if ('delete_url' in this.responseBody) {
-                let deleteButton = document.getElementById('NEW_DESTINATION_DELETE_BUTTON');
+                let deleteButton = document.getElementById('NEW_RELAYSTATE_DELETE_BUTTON');
+                deleteButton.formTarget = this.responseBody.delete_url;
+                deleteButton.id = '';
+            }
+        }
+    }
+}
+
+class AttributeForm extends Form {
+    constructor(eventTarget, id) {
+        super(eventTarget);
+        this.submittedForm = eventTarget.target.parentElement.parentElement;
+    }
+
+    insertNewForm() {
+        let container = this.submitButton.parentElement;
+        let newForm = this.responseBody['new_form'];
+        let formCount = container.children.length;
+        let lastForm = container.children[formCount - 2];
+        lastForm.insertAdjacentHTML('afterend', newForm);
+    }
+
+    getCustomDeleteMessage() {
+        let form = this.submittedForm;
+        let formData = new FormData(form);
+        let name = formData.get('token_attribute_name');
+        let message = `Are you sure you want to delete this item?\n\t
+                        Token Attribute Name = ${name}`
+        return message;
+    }
+
+    continueProcessing(action) {
+        if (action == 'DELETE') {
+            let form = document.getElementById(this.uniqueElementId);
+            form.remove();
+        } else if (action == 'CREATE-NEW') {
+            if ('unique_element_id' in this.responseBody) {
+                let form = document.getElementById('ATTRIBUTE_NEW');
+                form.id = this.responseBody.unique_element_id;
+            }
+            if ('update_url' in this.responseBody) {
+                let saveButton = document.getElementById('NEW_ATTRIBUTE_SAVE_BUTTON');
+                saveButton.formTarget = this.responseBody.update_url;
+                saveButton.id = '';
+            }
+            if ('delete_url' in this.responseBody) {
+                let deleteButton = document.getElementById('NEW_ATTRIBUTE_DELETE_BUTTON');
                 deleteButton.formTarget = this.responseBody.delete_url;
                 deleteButton.id = '';
             }
@@ -315,18 +356,29 @@ function submitForm(event) {
             let form = new RelayStateForm(eventTarget);
             let method = event.target.formMethod;
             if (method.toUpperCase() == 'GET') {
-                let newDestinationForm = form.fetchNewForm();
+                let newForm = form.fetchNewForm();
             } else {
                 form.submitForm(method=method, action=action);
             }
         } else if (action == DELETE) {
-            let form = new DestinationForm(eventTarget);
+            let form = new RelayStateForm(eventTarget);
             form.deleteInstance(action);
         }
     } else if (model == 'ATTRIBUTE') {
         if (action == UPDATE) {
             let form = new StandardForm(eventTarget);
             form.submitForm(method='POST', action=action);
+        } else if (action == CREATENEW) {
+            let form = new AttributeForm(eventTarget);
+            let method = event.target.formMethod;
+            if (method.toUpperCase() == 'GET') {
+                let newForm = form.fetchNewForm();
+            } else {
+                form.submitForm(method=method, action=action);
+            }
+        } else if (action == DELETE) {
+            let form = new AttributeForm(eventTarget);
+            form.deleteInstance(action);
         }
     }
 }

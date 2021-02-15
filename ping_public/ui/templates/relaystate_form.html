@@ -4,7 +4,7 @@
     <div class="relaystateEntry">
 
         <div class="relaystateField">
-            <div><label for="{{ relaystate_form.data_store.id_for_label }}">DATA STORE</label></div>
+            <div><label for="{{ relaystate.data_store.id_for_label }}">DATA STORE</label></div>
             {{ relaystate.form.data_store }}
         </div>
 
@@ -19,7 +19,7 @@
         </div>
 
         <input type="submit" value="SAVE" formMethod="POST" formTarget="{{ relaystate.create_new_url }}" id="NEW_RELAYSTATE_SAVE_BUTTON" onclick="submitForm(event)">
-        <input type="submit" value="DELETE" formMethod="DELETE" formTarget="/ui/sp/delete/DESTINATION/NEW" id="NEW_DESTINATION_DELETE_BUTTON" onclick="submitForm(event)">
+        <input type="submit" value="DELETE" formMethod="DELETE" formTarget="/ui/sp/delete/RELAYSTATE/NEW" id="NEW_RELAYSTATE_DELETE_BUTTON" onclick="submitForm(event)">
 
     </div>
     <div class="urlPattern relaystateField">

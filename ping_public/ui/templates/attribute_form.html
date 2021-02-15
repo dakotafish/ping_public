@@ -1,0 +1,55 @@
+{% if attribute %}
+
+<form class="relayStateForm" action="{{ attribute.create_new_url }}" id="{{ attribute.unique_element_id }}" method="POST">
+
+    {% csrf_token %}
+
+    <div class="relaystateEntry">
+
+        <div class="relaystateField">
+            <div><label for="attribute_type">ATTRIBUTE TYPE</label></div>
+            {{ attribute.form.attribute_type }}
+        </div>
+
+        <div class="relaystateField">
+            <div><label for="">TOKEN ATTRIBUTE NAME</label></div>
+            {{ attribute.form.token_attribute_name }}
+        </div>
+
+        <div class="relaystateField">
+            <div><label for="">TOKEN ATTRIBUTE VALUE</label></div>
+            {{ attribute.form.token_attribute_value }}
+        </div>
+
+        <div class="relaystateField">
+            <div><label for="">SAML ATTRIBUTE NAME</label></div>
+            {{ attribute.form.saml_attribute_name }}
+        </div>
+
+        <div class="relaystateField">
+            <div><label for="destination_endpoint">INCLUDE IN TOKEN</label></div>
+            {{ attribute.form.include_in_token }}
+        </div>
+
+        <div class="relaystateField">
+            <div><label for="">PARAMETERS</label></div>
+            {{ attribute.form.query_parameters }}
+        </div>
+
+        <input type="submit" value="SAVE" formMethod="POST" formTarget="{{ attribute.create_new_url }}" id="NEW_ATTRIBUTE_SAVE_BUTTON" onclick="submitForm(event)">
+        <input type="submit" value="DELETE" formMethod="DELETE" formTarget="/ui/sp/delete/ATTRIBUTE/NEW" id="NEW_ATTRIBUTE_DELETE_BUTTON" onclick="submitForm(event)">
+
+
+
+
+    </div>
+    <div class="relaystateField urlPattern">
+        <div><label for="">QUERY</label></div>
+        {{ attribute.form.query }}
+
+    </div>
+</form>
+
+{% else %}
+<p>No Attributes received from the view.</p>
+{% endif %}

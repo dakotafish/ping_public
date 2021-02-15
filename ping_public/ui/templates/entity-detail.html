@@ -429,17 +429,9 @@ article:nth-of-type(3) {
 
 
 
-
-
-
-
-
         <div class="relaystateContainer">
             <div class="certificateContainer">
                 <h1 id="attributeConfiguration" class="certificateHeading">Attributes</h1>
-
-
-
 
 
                 {% for attribute in destination.attributes %}
@@ -481,7 +473,7 @@ article:nth-of-type(3) {
                         </div>
 
                         <input type="submit" value="SAVE" onclick="submitForm(event)" formTarget="{{ attribute.update_url }}">
-                        <input type="submit" value="DELETE">
+                        <input type="submit" value="DELETE" formMethod="DELETE" formTarget="{{ attribute.delete_url }}" onclick="submitForm(event)">
 
                     </div>
                     <div class="relaystateField urlPattern">
@@ -493,7 +485,8 @@ article:nth-of-type(3) {
 
                 {% endfor %}
 
-                <input type="submit" value="Add New Attribute" id="addRelayStateButton" onclick="someFunction()" formTarget="{{ attribute.create_new_url }}">
+                <input type="submit" value="Add New Attribute" id="addRelayStateButton" formMethod="GET" formTarget="{{ destination.new_attribute.create_new_url }}" onclick="submitForm(event)">
+
 
 
 

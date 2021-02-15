@@ -214,6 +214,14 @@ class Delete(generic.DetailView):
             model_instance = Destination.objects.get(pk=model_instance_id)
             model_instance.delete()
             return self.SUCCESS
+        elif model == 'RELAYSTATE':
+            model_instance = RelayState.objects.get(pk=model_instance_id)
+            model_instance.delete()
+            return self.SUCCESS
+        elif model == 'ATTRIBUTE':
+            model_instance = Attribute.objects.get(pk=model_instance_id)
+            model_instance.delete()
+            return self.SUCCESS
         else:
             error = "Failed to delete object with pk=" + str(model_instance_id)
             status = self.FAIL
