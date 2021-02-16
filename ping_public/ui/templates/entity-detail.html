@@ -227,7 +227,7 @@ article:nth-of-type(3) {
 
     </style>
   </head>
-  <body>
+  <body onload="attributeDisplayInitial()">
 
     <nav class="sideBarContainer">
         <div class="sideBarGrid">
@@ -436,41 +436,48 @@ article:nth-of-type(3) {
 
                 {% for attribute in destination.attributes %}
 
-                <form class="relayStateForm" action="{{ attribute.update_url }}" id="{{ attribute.unique_element_id }}" method="POST">
+                <form name="attributeForm" class="relayStateForm" action="{{ attribute.update_url }}" id="{{ attribute.unique_element_id }}" method="POST">
 
                     {% csrf_token %}
 
                     <div class="relaystateEntry">
 
-                        <div class="relaystateField">
+                        <div onchange="attributeDisplayChange(event)" class="relaystateField">
                             <div><label for="attribute_type">ATTRIBUTE TYPE</label></div>
                             {{ attribute.form.attribute_type }}
                         </div>
+
+
 
                         <div class="relaystateField">
                             <div><label for="">TOKEN ATTRIBUTE NAME</label></div>
                             {{ attribute.form.token_attribute_name }}
                         </div>
 
+
                         <div class="relaystateField">
                             <div><label for="">TOKEN ATTRIBUTE VALUE</label></div>
                             {{ attribute.form.token_attribute_value }}
                         </div>
+
 
                         <div class="relaystateField">
                             <div><label for="">SAML ATTRIBUTE NAME</label></div>
                             {{ attribute.form.saml_attribute_name }}
                         </div>
 
+
                         <div class="relaystateField">
                             <div><label for="destination_endpoint">INCLUDE IN TOKEN</label></div>
                             {{ attribute.form.include_in_token }}
                         </div>
 
+
                         <div class="relaystateField">
                             <div><label for="">PARAMETERS</label></div>
                             {{ attribute.form.query_parameters }}
                         </div>
+
 
                         <input type="submit" value="SAVE" onclick="submitForm(event)" formTarget="{{ attribute.update_url }}">
                         <input type="submit" value="DELETE" formMethod="DELETE" formTarget="{{ attribute.delete_url }}" onclick="submitForm(event)">

@@ -269,6 +269,9 @@ class AttributeForm extends Form {
         let form = this.submittedForm;
         let formData = new FormData(form);
         let name = formData.get('token_attribute_name');
+        if (name == '') {
+            name = null;
+        }
         let message = `Are you sure you want to delete this item?\n\t
                         Token Attribute Name = ${name}`
         return message;
@@ -523,9 +526,6 @@ function pageScroll(e) {
     // console.log(e.target.scrollBottom);
     let currentPosition = e.target.scrollTop;
 
-    // need to figure out where the bottom of the window is..
-
-
     let entityConfigY = document.getElementById("entityConfiguration").offsetTop;
     let certificateConfigY = document.getElementById("certificateConfiguration").offsetTop;
     let destinationConfigY = document.getElementById("destinationConfiguration").offsetTop;
@@ -542,4 +542,46 @@ function pageScroll(e) {
 
     let relayStateRelativePosition = relayStateConfigY - currentPosition;
 
+}
+
+function attributeDisplayInitial() {
+    let forms = document.getElementsByName('attributeForm');
+    for (let form of forms) {
+        let uniqueElementId = form.id;
+        updateAttrDisplay(uniqueElementId);
+    }
+}
+
+function attributeDisplayChange(event) {
+    let uniqueElementId = event.target.parentElement.parentElement.parentElement.id;
+    let attributeType = event.target.value;
+    updateAttrDisplay(uniqueElementId);
+}
+
+function updateAttrDisplay(uniqueElementId) {
+    let ASSERTION = {
+        value: 'ASSERTION',
+        hiddenAttributes: ['token_attribute_value', 'query', 'query_parameters'],
+        displayedAttributes: ['attribute_type', 'saml_attribute_name', 'include_in_token', 'token_attribute_name']
+    }
+    let STRING = {
+        value: 'STRING',
+        hiddenAttributes: ['saml_attribute_name', 'query', 'query_parameters',],
+        displayedAttributes: ['attribute_type', 'include_in_token', 'token_attribute_name', 'token_attribute_value']
+    }
+    let QUERY = {
+        value: 'QUERY',
+        hiddenAttributes: ['token_attribute_value', 'saml_attribute_name'],
+        displayedAttributes: ['attribute_type', 'include_in_token', 'token_attribute_name', 'query', 'query_parameters']
+    }
+    let attributeTypes = {'ASSERTION': ASSERTION, 'STRING': STRING, 'QUERY': QUERY};
+    let form = document.getElementById(uniqueElementId);
+    let attributeType = form['attribute_type'].value;
+    let attributeFormat = attributeTypes[attributeType];
+    for (let attr of attributeFormat.hiddenAttributes) {
+        form[attr].parentElement.style.display = 'none';
+    }
+    for (let attr of attributeFormat.displayedAttributes) {
+        form[attr].parentElement.style.display = '';
+    }
 }

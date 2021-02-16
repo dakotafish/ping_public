@@ -1,12 +1,12 @@
 {% if attribute %}
 
-<form class="relayStateForm" action="{{ attribute.create_new_url }}" id="{{ attribute.unique_element_id }}" method="POST">
+<form name="attributeForm" class="relayStateForm" action="{{ attribute.create_new_url }}" id="{{ attribute.unique_element_id }}" method="POST">
 
     {% csrf_token %}
 
     <div class="relaystateEntry">
 
-        <div class="relaystateField">
+        <div onchange="attributeDisplayChange(event)" class="relaystateField">
             <div><label for="attribute_type">ATTRIBUTE TYPE</label></div>
             {{ attribute.form.attribute_type }}
         </div>
