@@ -263,6 +263,7 @@ class AttributeForm extends Form {
         let formCount = container.children.length;
         let lastForm = container.children[formCount - 2];
         lastForm.insertAdjacentHTML('afterend', newForm);
+        attributeDisplayInitial();
     }
 
     getCustomDeleteMessage() {
