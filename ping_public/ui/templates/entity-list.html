@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+      {% load static %}
+    <meta charset="utf-8">
+    <title>PingPublic</title>
+
+
+    <style>
+        html {
+            font-family: sans-serif;
+        }
+
+        body {
+            margin: 0;
+        }
+
+        header {
+
+            height: 100px;
+        }
+
+        h1 {
+            text-align: left;
+            color: #3484F0;
+            line-height: 100px;
+            margin: 0;
+            margin-top: 20px;
+            /* margin-bottom: 20px; */
+            /* margin-left: 20px; */
+        }
+
+
+
+        .entityGrid {
+            /* margin: 20px; */
+
+            padding: 20px;
+            display: grid;
+            grid-gap: 10px;
+            grid-template-columns: repeat(2, 6fr);
+            grid-template-columns: max-content max-content;
+            text-align: center;
+            justify-content: left;
+        }
+
+        .entityGrid label {
+            text-align:left;
+        }
+
+
+
+        .certificateHeading {
+            margin-left: -20px;
+            padding-left: -20px;
+        }
+
+        .certificateContainer {
+            /* margin-left: 10%; */
+            padding: 20px;
+        }
+
+
+        table  th {
+            border:3px solid #F7F7F7;
+        }
+        tbody tr:nth-child(odd){
+            background-color: #F7F7F7;
+            /* color: #fff; */
+        }
+
+
+        /* input[type=text], select {
+            width: 100%;
+            padding: 12px 20px;
+            margin: 8px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        } */
+        /* .relaystateContainer {
+            width: 100%;
+        }
+        .relaystateContainer input[type=text] {
+            width: 100%;
+        } */
+
+/*
+        table{
+border-collapse:collapse;
+border:1px solid #FF0000;
+}
+        table td {
+border:1px solid #FF0000;
+}
+table th {
+border:1px solid #FF0000;
+}
+
+
+article:nth-of-type(3) {
+  flex: 2;
+}
+*/
+
+        .relaystateRow {
+            font-size: small;
+        }
+
+        .relaystateEntry {
+            display: flex;
+            flex: 1;
+            flex-wrap: wrap;
+        }
+
+        .relaystateField {
+            font-size: x-small;
+            flex: 1;
+        }
+
+        .attributeField {
+            font-size: x-small;
+            margin: 10px;
+            flex-basis: 21%;
+        }
+
+        .urlPattern {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .relayStateForm {
+            border-style: solid;
+            border-width: 1px;
+            border-color: #F7F7F7;
+            -webkit-border-radius: 0px;
+            padding: 10px;
+            background-color: #F7F7F7;
+        }
+
+        .relayStateForm:nth-child(odd) {
+            background-color: #C4DBFA;
+        }
+
+        input[type=submit] {
+            width: auto;
+            height: auto;
+            max-height: 30px;
+            margin: 1%;
+            background-color: white;
+            background-color: #F7F7F7;
+            border-width: 1px;
+            border-color: #3484F0;
+            border-color: #0453F4;
+            color: #0453F4;
+            font-size: smaller;
+            -webkit-border-radius: 5px;
+            -webkit-border-radius: 0px;
+            padding: 6px;
+        }
+
+        .searchField {
+            border-style: solid;
+            border-width: 1px;
+            border-color: #F7F7F7;
+            -webkit-border-radius: 0px;
+            padding: 10px;
+            background-color: #F7F7F7;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .entityContainer {
+            margin-left: 25%;
+            height: 100vh;
+            overflow: scroll;
+            right: auto 0;
+            bottom: 5%;
+        }
+
+
+        .sideBarContainer {
+            height: 100vh;
+            width: 20%;
+            overflow-y: auto;
+            overflow-x: auto;
+            overflow: scroll;
+            float: left;
+            position: fixed;
+            background-color: #f7f7f7;
+            border-right-style: inset;
+        }
+
+        .sideBarGrid {
+            display: grid;
+            align-items: center;
+            border-bottom-style: inset;
+            text-align: justify;
+        }
+        .sideBarGrid span {
+            padding: 10%;
+            padding-right: 0;
+            width: 90%;
+            border-width: 1px;
+        }
+        .sideBarGrid span:hover {
+            border-style: inset;
+            border-width: 2px;
+            background-color: #757575;
+            background-color: white;
+        }
+
+        .sideBarGrid a {
+            padding: 10%;
+            padding-right: 0;
+            width: 90%;
+            border-width: 1px;
+
+            color: inherit;
+            text-decoration: inherit;
+            display: grid;
+            grid-auto-columns: max-content;
+            grid-auto-flow: column;
+        }
+        .sideBarGrid a:hover {
+            border-style: inset;
+            border-width: 2px;
+            background-color: #757575;
+            background-color: white;
+        }
+
+
+
+
+
+    </style>
+  </head>
+  <body onload="attributeDisplayInitial()">
+
+    <nav class="sideBarContainer">
+        <div class="sideBarGrid">
+            <a href="#">Home</a>
+            <a href="#">Inbound Connections</a>
+            <a href="#">Oundbound Connections</a>
+            <a href="#">Logs</a>
+        </div>
+
+
+    </nav>
+    <div id="entityContainer" onscroll="updateVisibleSectionIndicators(event)" class="entityContainer">
+        <div class="relaystateContainer">
+            <div class="certificateContainer">
+                <h1 class="certificateHeading">Entity List</h1>
+
+                <input class="searchField" type="text" id="relayStateFilter" name="relayStateFilter" placeholder="Filter..">
+
+                {% for entity in entity_list %}
+                <div class="relayStateForm">
+                    <div class="relaystateEntry">
+                        <div class="relaystateField">
+                            <div><h2>Entity ID</h2></div>
+                            <p>{{ entity.entity_id }}</p>
+                        </div>
+                        <div class="relaystateField">
+                            <div><h2>Entity Name</h2></div>
+                            <p>{{ entity.name }}</p>
+                        </div>
+                        <div class="relaystateField">
+                            <div><h2>Virtual Server ID</h2></div>
+                            <p>{{ entity.virtual_server_id }}</p>
+                        </div>
+                        <div class="relaystateField">
+                            <div><h2>Is Encrypted?</h2></div>
+                            <p>{{ entity.is_encrypted }}</p>
+                        </div>
+                        <div class="relaystateField">
+                            <div><h2>Signature Validation Method</h2></div>
+                            <p>{{ entity.signature_validation }}</p>
+                        </div>
+
+                    </div>
+                    <div class="urlPattern relaystateField">
+                        <div><h3>Description</h3></div>
+                        <div>{{ entity.description }}</div>
+
+                    </div>
+
+                    <input type="submit" value="Edit Entity Configuration" formMethod="GET" onclick="location.href='{% url 'EntityDetail' 'sp' entity.id %}'">
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'entity-detail.js' %}"></script>
+    <script>
+        var csrftoken = '{{ csrf_token }}';
+    </script>
+  </body>
+</html>

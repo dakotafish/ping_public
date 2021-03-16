@@ -12,7 +12,27 @@ from .forms import EntityForm, CertificateForm, DestinationForm, RelayStateForm,
 from django.template.loader import render_to_string
 from django.template import RequestContext
 
+class EntityDetail(generic.DetailView):
 
+    def get(self, request, *args, **kwargs):
+        entity_key = kwargs['pk']
+        entity_instance = Entity.objects.get(pk=entity_key)
+        entity_template = EntityTemplate(model='ENTITY',
+                                model_instance=entity_instance,
+                                parent_model='ENTITY',
+                                parent_instance=entity_instance)
+        return render(request=request,
+                      template_name=entity_template.template,
+                      context={'entity_template': entity_template})
+
+class EntityList(generic.DetailView):
+
+    def get(self, request, *args, **kwargs):
+        role = kwargs['role']
+        entity_list = Entity.objects.all()
+        return render(request=request,
+                      template_name='entity-list.html',
+                      context={'entity_list': entity_list})
 
 class Meta:
     templates = {
@@ -135,21 +155,6 @@ class DestinationTemplate(Meta):
             attribute_meta = Meta(model='ATTRIBUTE', model_instance=attribute, parent_model='DESTINATION',
                                   parent_instance=self.model_instance)
             self.attributes.append(attribute_meta)
-
-
-class EntityDetail(generic.DetailView):
-
-    def get(self, request, *args, **kwargs):
-        entity_key = kwargs['pk']
-        entity_instance = Entity.objects.get(pk=entity_key)
-        entity_template = EntityTemplate(model='ENTITY',
-                                model_instance=entity_instance,
-                                parent_model='ENTITY',
-                                parent_instance=entity_instance)
-        return render(request=request,
-                      template_name=entity_template.template,
-                      context={'entity_template': entity_template})
-
 
 
 
