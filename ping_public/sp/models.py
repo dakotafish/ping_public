@@ -236,6 +236,9 @@ class Destination(models.Model):
     # # TODO - The token_password will need to be encrypted eventually
     # token_password = models.CharField(max_length=100)
 
+    def __str__(self):
+        return self.name
+
     def find_matching_relay_state(self, received_relay_state):
         all_relay_states = RelayState.objects.filter(destination__id=self.id)
         for relay_state in all_relay_states:

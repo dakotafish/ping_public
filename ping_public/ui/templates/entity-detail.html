@@ -219,6 +219,9 @@ article:nth-of-type(3) {
 
             color: inherit;
             text-decoration: inherit;
+            display: grid;
+            grid-auto-columns: max-content;
+            grid-auto-flow: column;
         }
         .sideBarGrid a:hover {
             border-style: inset;
@@ -242,12 +245,17 @@ article:nth-of-type(3) {
             <a href="#">Oundbound Connections</a>
             <a href="#">Logs</a>
         </div>
+
+
+
         <div class="sideBarGrid">
             <a id="entityNav" href="#entityConfiguration">Entity Configuration</a>
             <a id="certificateNav" href="#certificateConfiguration">Certificates</a>
-            <a id="destinationNav" href="#destinationConfiguration">Destination Configuration</a>
-            <a id="relayStateNav" href="#relayStateConfiguration">RelayStates</a>
-            <a id="attributeNav" href="#attributeConfiguration">Attributes</a>
+            {% for destination in entity_template.destinations %}
+            <a id="destinationNav_{{ destination.model_instance_id }}" name="destinationNav" href="#destinationConfiguration_{{ destination.model_instance_id }}"> Destination: {{ destination.model_instance }} </a>
+            <a id="relayStateNav_{{ destination.model_instance_id }}" name="relayStateNav" href="#relayStateConfiguration_{{ destination.model_instance_id }}">RelayStates</a>
+            <a id="attributeNav_{{ destination.model_instance_id }}" name="attributeNav" href="#attributeConfiguration_{{ destination.model_instance_id }}">Attributes</a>
+            {% endfor %}
         </div>
     </nav>
 
@@ -355,7 +363,7 @@ article:nth-of-type(3) {
 
         {% for destination in entity_template.destinations %}
         <div class="destinationContainer">
-            <h1 id="destinationConfiguration">Destination Configuration </h1>
+            <h1 id="destinationConfiguration_{{ destination.model_instance_id }}">Destination Configuration </h1>
             <form action="{{ destination.update_url }}" id="{{ destination.unique_element_id }}" method="POST">
                 <div class="entityGrid">
                     {% csrf_token %}
@@ -377,7 +385,7 @@ article:nth-of-type(3) {
                 </div>
             </form>
 
-        <div id="destinationConfigurationEnd"></div>
+        <div id="destinationConfigurationEnd_{{ destination.model_instance_id }}"></div>
 
 
 
@@ -386,7 +394,7 @@ article:nth-of-type(3) {
 
         <div class="relaystateContainer">
             <div class="certificateContainer">
-                <h1 id="relayStateConfiguration" class="certificateHeading">RelayStates</h1>
+                <h1 id="relayStateConfiguration_{{ destination.model_instance_id }}" class="certificateHeading">RelayStates</h1>
 
                 <input class="searchField" type="text" id="relayStateFilter" name="relayStateFilter" placeholder="Filter..">
 
@@ -431,13 +439,13 @@ article:nth-of-type(3) {
                 <input type="submit" value="Add New RelayState" formMethod="GET" formtarget="{{ destination.new_relay_state.create_new_url }}" onclick="submitForm(event)">
             </div>
         </div>
-        <div id="relayStateConfigurationEnd"></div>
+        <div id="relayStateConfigurationEnd_{{ destination.model_instance_id }}"></div>
 
 
 
         <div class="relaystateContainer">
             <div class="certificateContainer">
-                <h1 id="attributeConfiguration" class="certificateHeading">Attributes</h1>
+                <h1 id="attributeConfiguration_{{ destination.model_instance_id }}" class="certificateHeading">Attributes</h1>
 
 
                 {% for attribute in destination.attributes %}
@@ -506,7 +514,7 @@ article:nth-of-type(3) {
 
             </div>
         </div>
-        <div id="attributeConfigurationEnd"></div>
+        <div id="attributeConfigurationEnd_{{ destination.model_instance_id }}"></div>
 
         {% endfor %}
         </div>

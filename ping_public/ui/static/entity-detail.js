@@ -451,53 +451,36 @@ function updateVisibleSectionIndicators(e) {
     let certificateConfigEnd = document.getElementById("certificateConfigurationEnd");
     let certificateNav = document.getElementById("certificateNav");
 
-    let destinationConfig = document.getElementById("destinationConfiguration");
-    let destinationConfigEnd = document.getElementById("destinationConfigurationEnd");
-    let destinationNav = document.getElementById("destinationNav");
+    let configList = [entityConfig, certificateConfig];
+    let configEndList = [entityConfigEnd, certificateConfigEnd];
+    let navList = [entityNav, certificateNav];
 
-    let relayStateConfig = document.getElementById("relayStateConfiguration");
-    let relayStateConfigEnd = document.getElementById("relayStateConfigurationEnd");
-    let relayStateNav = document.getElementById("relayStateNav");
+    let destinations = document.getElementsByName('destinationNav');
+    let navStrings = ['destinationConfiguration_', 'destinationConfigurationEnd_', 'relayStateConfiguration_',
+                      'relayStateConfigurationEnd_', 'relayStateNav_', 'attributeConfiguration_',
+                      'attributeConfigurationEnd_', 'attributeNav_']
+    for (let destination of destinations) {
+        let destinationId = destination.id.split('_')[1];
+        let configStrings = ['destinationConfiguration_', 'relayStateConfiguration_', 'attributeConfiguration_'];
+        let configEndStrings = ['destinationConfigurationEnd_', 'relayStateConfigurationEnd_', 'attributeConfigurationEnd_'];
+        let navStrings = ['destinationNav_', 'relayStateNav_', 'attributeNav_'];
 
-    let attributeConfig = document.getElementById("attributeConfiguration");
-    let attributeConfigEnd = document.getElementById("attributeConfigurationEnd");
-    let attributeNav = document.getElementById("attributeNav");
-
-    let configList = [entityConfig, certificateConfig, destinationConfig, relayStateConfig, attributeConfig];
-    let configEndList = [entityConfigEnd, certificateConfigEnd, destinationConfigEnd, relayStateConfigEnd, attributeConfigEnd]
-    let navList = [entityNav, certificateNav, destinationNav, relayStateNav, attributeNav];
+        for (let i = 0; i < configStrings.length; i++) {
+            let config = document.getElementById(configStrings[i] + destinationId);
+            configList.push(config);
+            let configEnd = document.getElementById(configEndStrings[i] + destinationId);
+            configEndList.push(configEnd);
+            let nav = document.getElementById(navStrings[i] + destinationId);
+            navList.push(nav);
+        }
+    }
 
     for (let i = 0; i < configList.length; i++) {
         let temp = isElementInView(viewTop, viewBottom, configList[i], configEndList[i], navList[i]);
-        // if (temp) {
-        //     break;
-        // }
     }
-
-    // let relayStateInView = isElementInView(viewTop, viewBottom, relayStateConfig, relayStateNav);
-    // if (relayStateInView) {
-    //     console.log('Your RelayState is showingggg!');
-    // }
-
 }
 
 function isElementInView(viewTop, viewBottom, element, elementEnd, relatedNavElement) {
-    /*
-    This needs a few improvements..
-    #1 - I need the location for the bottom of each element..
-            right now the moment the header hits the top it un-highlights
-    #2 - Only highlight an element if
-            A: The top and bottom are within view
-            B: Or the element is currently taking up over ~half of the viewheight
-            This fixes two problems..
-                The first is that a nav element is highlighted when only a small part of the element is showing
-                The second is that an element that is larger than the viewport (such as relaystates or attributes)
-                    would never be highlighted since they would extend past the top and bottom of the screen.
-
-    ALT Solution #2:
-        Take the average of the top and bottom of an element (ie the middle)
-            and only highlight the element if the average/middle is within the viewport?
-    */
     let elementTop = element.offsetTop;
     let elementBottom = elementEnd.offsetTop;
     let elementCenter = ((elementTop + elementBottom) / 2)
@@ -509,41 +492,8 @@ function isElementInView(viewTop, viewBottom, element, elementEnd, relatedNavEle
         relatedNavElement.style.background = "inherit";
         return false;
     }
-
-    // if (elementTop <= viewBottom && elementTop >= viewTop) {
-    //     relatedNavElement.style.background = "#C4DBFA";
-    //     return true
-    // } else {
-    //     relatedNavElement.style.background = "inherit";
-    //     return false;
-    // }
 }
 
-function pageScroll(e) {
-    // console.log("Page Scroll event.");
-    // console.log("ScrollTop:");
-    // console.log(e.target.scrollTop);
-    // console.log("ScrollBottom:");
-    // console.log(e.target.scrollBottom);
-    let currentPosition = e.target.scrollTop;
-
-    let entityConfigY = document.getElementById("entityConfiguration").offsetTop;
-    let certificateConfigY = document.getElementById("certificateConfiguration").offsetTop;
-    let destinationConfigY = document.getElementById("destinationConfiguration").offsetTop;
-    let relayStateConfigY = document.getElementById("relayStateConfiguration").offsetTop;
-    let attributeConfigY = document.getElementById("attributeConfiguration").offsetTop;
-
-    let relayStateConfigInView = false;
-    console.log('relaystate minus current:')
-    console.log(relayStateConfigY - currentPosition);
-
-    if (relayStateConfigY - currentPosition > 0) {
-        console.log("RelayState is in view!");
-    }
-
-    let relayStateRelativePosition = relayStateConfigY - currentPosition;
-
-}
 
 function attributeDisplayInitial() {
     let forms = document.getElementsByName('attributeForm');

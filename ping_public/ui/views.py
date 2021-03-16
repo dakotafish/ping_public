@@ -137,7 +137,7 @@ class DestinationTemplate(Meta):
             self.attributes.append(attribute_meta)
 
 
-class NewEntityDetail(generic.DetailView):
+class EntityDetail(generic.DetailView):
 
     def get(self, request, *args, **kwargs):
         entity_key = kwargs['pk']
