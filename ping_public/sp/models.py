@@ -172,7 +172,7 @@ class PrivateKey(models.Model):
             This can be changed to load the key from a file like so if necessary:
                 key_manager.add_key(xmlsec.Key.from_file(key, xmlsec.KeyFormat.PEM))
             '''
-            key_manager.add_key(xmlsec.Key.from_data(self.key, xmlsec.KeyFormat.PEM))
+            key_manager.add_key(xmlsec.Key.from_memory(self.key, xmlsec.KeyFormat.PEM))
             encryption_context = xmlsec.EncryptionContext(key_manager)
             key_data = encryption_context.decrypt(encrypted_key)
             assert key_data is not None
@@ -186,7 +186,7 @@ class PrivateKey(models.Model):
         4) Now that we decrypted encrypted_key we clear the encryption context and use that key to decrypt the assertion
         '''
         encryption_context.reset()
-        encryption_context.key = xmlsec.Key.from_binary_data(self.key_data_constant, key_data)
+        encryption_context.key = xmlsec.Key.from_binary_data(key_data_constant, key_data)
         encrypted_data = verified_saml.find('{*}EncryptedAssertion').find('{*}EncryptedData')
         decrypted_assertion = encryption_context.decrypt(encrypted_data)
         encryption_context.reset()

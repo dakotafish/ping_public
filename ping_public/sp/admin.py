@@ -8,6 +8,7 @@ admin.site.register(models.Destination)
 admin.site.register(models.RelayState)
 admin.site.register(models.Attribute)
 admin.site.register(models.DataStore)
+admin.site.register(models.PrivateKey)
 
 
 # @admin.register(models.Entity)
