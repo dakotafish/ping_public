@@ -106,6 +106,9 @@ venv.bak/
 # mypy
 .mypy_cache/
 
+# visual studio 
+.vscode
+
 .idea
 settings.py
 .DS_Store
